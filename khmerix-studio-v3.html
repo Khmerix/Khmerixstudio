@@ -1,0 +1,3448 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#09090b">
+    <title>KHMERIX Studio — Audio Converter & Prompt Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        kx: {
+                            bg: '#09090b',
+                            surface: '#111113',
+                            card: '#18181b',
+                            border: '#27272a',
+                            muted: '#3f3f46',
+                            text: '#a1a1aa',
+                            pink: '#f43f5e',
+                            rose: '#fb7185',
+                            cyan: '#22d3ee',
+                            teal: '#2dd4bf',
+                            violet: '#8b5cf6',
+                            gold: '#fbbf24',
+                            acid: '#a3e635',
+                            white: '#fafafa',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Syne', 'sans-serif'],
+                        body: ['DM Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #09090b;
+            color: #d4d4d8;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(139,92,246,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(244,63,94,0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Generative Background Canvas ─── */
+        #bgArtCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Scrollbar ─── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        ::selection { background: #f43f5e; color: white; }
+
+        /* ─── Tab System ─── */
+        .main-section { display: none; }
+        .main-section.active { display: block; animation: fadeUp .3s ease; }
+        .ptab { display: none; }
+        .ptab.active { display: grid; grid-template-columns: 1fr; gap: 1.5rem; animation: fadeUp .3s ease; }
+        @media (min-width: 1024px) {
+            .ptab.active { grid-template-columns: 1.2fr .8fr; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Glass Panels ─── */
+        .glass {
+            background: rgba(24,24,27,.65);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(63,63,70,.5);
+        }
+
+        /* ─── Buttons ─── */
+        .btn-gen {
+            background: linear-gradient(135deg, #f43f5e 0%, #8b5cf6 100%);
+            color: white;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            transition: all .2s;
+        }
+        .btn-gen:hover { box-shadow: 0 0 24px rgba(244,63,94,.35); transform: translateY(-1px); }
+        .btn-gen:active { transform: translateY(0); }
+
+        .btn-ai {
+            background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(244,63,94,.08));
+            border: 1px solid rgba(139,92,246,.4);
+            color: #a78bfa;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            transition: all .2s;
+        }
+        .btn-ai:hover { box-shadow: 0 0 20px rgba(139,92,246,.25); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(244,63,94,.3);
+            color: #fb7185;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            transition: all .2s;
+        }
+        .btn-outline:hover { background: rgba(244,63,94,.08); border-color: #f43f5e; }
+
+        .btn-action {
+            background: #18181b;
+            border: 1px solid #27272a;
+            color: #a1a1aa;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .75rem;
+            font-weight: 500;
+            transition: all .2s;
+        }
+        .btn-action:hover { border-color: #22d3ee; color: #22d3ee; }
+
+        /* ─── Tag Buttons (Genre/Style/etc) ─── */
+        .tag-btn {
+            background: #18181b;
+            border: 1px solid #27272a;
+            color: #71717a;
+            font-family: 'Syne', sans-serif;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .tag-btn:hover { border-color: #f43f5e; color: #fb7185; transform: translateY(-1px); }
+        .tag-btn.active {
+            background: linear-gradient(135deg, rgba(244,63,94,.12), rgba(139,92,246,.08));
+            border-color: #f43f5e;
+            color: #fb7185;
+            box-shadow: 0 0 12px rgba(244,63,94,.15);
+        }
+
+        /* ─── Navigation Tabs ─── */
+        .nav-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #71717a;
+            font-family: 'Syne', sans-serif;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            transition: all .2s;
+        }
+        .nav-tab:hover { color: #d4d4d8; }
+        .nav-tab.active {
+            background: rgba(244,63,94,.08);
+            border-color: rgba(244,63,94,.3);
+            color: #fb7185;
+        }
+
+        /* ─── Form Inputs ─── */
+        .input-kx {
+            background: #111113;
+            border: 1px solid #27272a;
+            color: #fafafa;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            transition: all .2s;
+        }
+        .input-kx:focus {
+            border-color: #22d3ee;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34,211,238,.1);
+        }
+        .input-kx::placeholder { color: #52525b; }
+
+        select.input-kx {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2322d3ee' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right .75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em;
+            padding-right: 2.5rem;
+            cursor: pointer;
+        }
+        select.input-kx option {
+            background: #18181b;
+            color: #fafafa;
+            padding: 8px;
+        }
+
+        /* ─── Quick Word Tags ─── */
+        .qw {
+            background: rgba(34,211,238,.06);
+            border: 1px solid rgba(34,211,238,.2);
+            color: #22d3ee;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .7rem;
+            font-weight: 500;
+            transition: all .2s;
+            cursor: pointer;
+        }
+        .qw:hover { background: rgba(34,211,238,.12); border-color: #22d3ee; }
+
+        /* ─── Provider Buttons ─── */
+        .prov-btn {
+            background: #111113;
+            border: 1px solid #27272a;
+            color: #71717a;
+            font-size: .75rem;
+            transition: all .2s;
+        }
+        .prov-btn.active {
+            border-color: #8b5cf6;
+            background: rgba(139,92,246,.1);
+            color: #a78bfa;
+        }
+
+        /* ─── Template Buttons ─── */
+        .tpl-btn {
+            background: rgba(34,211,238,.05);
+            border: 1px solid rgba(34,211,238,.15);
+            color: #67e8f9;
+            font-size: .75rem;
+            transition: all .2s;
+        }
+        .tpl-btn:hover { background: rgba(34,211,238,.1); border-color: rgba(34,211,238,.3); }
+
+        /* ─── Output Box ─── */
+        .output-box {
+            background: #0a0a0c;
+            border: 1px solid #27272a;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+        }
+        .output-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6, #22d3ee);
+            opacity: .6;
+        }
+
+        /* ─── Sticky Output ─── */
+        @media (min-width: 1024px) {
+            .sticky-out {
+                position: sticky;
+                top: 100px;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+                align-self: flex-start;
+            }
+        }
+
+        /* ─── Waveform ─── */
+        #waveformCanvas { width: 100%; height: 100%; display: block; }
+
+        /* ─── Range Inputs ─── */
+        input[type="range"] { -webkit-appearance: none; background: transparent; cursor: pointer; }
+        input[type="range"]::-webkit-slider-track { background: #27272a; height: 6px; border-radius: 3px; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+            height: 16px; width: 16px; border-radius: 50%;
+            margin-top: -5px; border: 2px solid #fafafa;
+            box-shadow: 0 0 8px rgba(244,63,94,.4);
+        }
+        input[type="range"]::-moz-range-track { background: #27272a; height: 6px; border-radius: 3px; }
+        input[type="range"]::-moz-range-thumb {
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+            height: 16px; width: 16px; border-radius: 50%;
+            border: 2px solid #fafafa;
+        }
+
+        /* ─── Toggle Switch ─── */
+        .toggle-track {
+            width: 36px; height: 20px; background: #3f3f46; border-radius: 10px;
+            position: relative; cursor: pointer; transition: background .2s;
+        }
+        .toggle-track.on { background: #f43f5e; }
+        .toggle-track::after {
+            content: '';
+            position: absolute; top: 2px; left: 2px;
+            width: 16px; height: 16px; background: white; border-radius: 50%;
+            transition: transform .2s;
+        }
+        .toggle-track.on::after { transform: translateX(16px); }
+
+        /* ─── Drop Zone ─── */
+        .drop-zone {
+            border: 2px dashed #27272a;
+            background: rgba(17,17,19,.5);
+            transition: all .3s;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #f43f5e;
+            background: rgba(244,63,94,.04);
+            box-shadow: 0 0 30px rgba(244,63,94,.08);
+        }
+
+        /* ─── Saved Card ─── */
+        .saved-card {
+            background: #18181b;
+            border-left: 3px solid #f43f5e;
+            transition: all .2s;
+        }
+        .saved-card:hover { transform: translateX(4px); border-left-color: #22d3ee; }
+
+        /* ─── Loading ─── */
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid transparent; border-radius: 50%;
+            border-top-color: #22d3ee; border-right-color: #f43f5e;
+            animation: spin .6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* ─── Progress Bar ─── */
+        .prog-bar {
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6, #22d3ee);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* ─── Equalizer Bars ─── */
+        .eq-bar {
+            width: 3px;
+            background: linear-gradient(to top, #f43f5e, #22d3ee);
+            animation: eqz 1s ease-in-out infinite;
+        }
+        @keyframes eqz { 0%, 100% { height: 20%; } 50% { height: 100%; } }
+
+        /* ─── Notification ─── */
+        .notif {
+            position: fixed; top: 80px; right: 16px; z-index: 100;
+            padding: 12px 20px; border-radius: 12px;
+            font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 500;
+            transform: translateX(120%); transition: transform .3s ease;
+        }
+        .notif.show { transform: translateX(0); }
+        .notif.success { background: rgba(244,63,94,.12); border: 1px solid rgba(244,63,94,.3); color: #fb7185; }
+        .notif.error { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); color: #f87171; }
+
+        /* ─── Variation Cards ─── */
+        .var-card {
+            background: #111113;
+            border: 1px solid #27272a;
+            font-family: 'Syne', sans-serif;
+            font-size: .7rem; font-weight: 600;
+            letter-spacing: .05em;
+            transition: all .2s;
+        }
+        .var-card:hover { border-color: #f43f5e; background: rgba(244,63,94,.05); }
+        .var-card.active { border-color: #a3e635; background: rgba(163,230,53,.06); color: #a3e635; }
+
+        /* ─── Mic Button ─── */
+        .mic-btn {
+            background: rgba(34,211,238,.08);
+            border: 1px solid rgba(34,211,238,.3);
+            color: #22d3ee;
+            transition: all .2s;
+        }
+        .mic-btn:hover { box-shadow: 0 0 12px rgba(34,211,238,.2); }
+        .mic-btn.recording {
+            background: rgba(244,63,94,.15);
+            border-color: #f43f5e;
+            color: #f43f5e;
+            animation: pulse 1s infinite;
+        }
+
+        /* ─── Genre Rule Card ─── */
+        .rule-card {
+            background: rgba(17,17,19,.6);
+            border: 1px solid #27272a;
+            transition: all .2s;
+            cursor: pointer;
+        }
+        .rule-card:hover { border-color: rgba(244,63,94,.4); }
+        .rule-card.checked { border-color: #f43f5e; background: rgba(244,63,94,.06); }
+
+        @media (max-width: 768px) {
+            select.input-kx { font-size: 16px; }
+        }
+
+        /* ─── Splash Screen ─── */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #09090b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        #splashScreen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .splash-logo {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+        }
+        .splash-logo .glow {
+            position: absolute;
+            inset: -8px;
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6, #22d3ee);
+            border-radius: 20px;
+            filter: blur(20px);
+            opacity: 0;
+            animation: splashGlow 1.5s ease-in-out forwards;
+        }
+        .splash-logo .box {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: #09090b;
+            border-radius: 20px;
+            border: 2px solid rgba(244,63,94,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: splashBoxIn 0.6s ease-out 0.2s forwards;
+        }
+        .splash-logo .box span {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 40px;
+            background: linear-gradient(135deg, #f43f5e, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .splash-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 28px;
+            letter-spacing: 0.2em;
+            background: linear-gradient(90deg, #fafafa, #fb7185, #fafafa);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            opacity: 0;
+            animation: splashTextIn 0.6s ease-out 0.5s forwards, splashShimmer 2s ease-in-out 1s infinite;
+        }
+        .splash-sub {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #52525b;
+            opacity: 0;
+            animation: splashTextIn 0.6s ease-out 0.7s forwards;
+        }
+        .splash-bar {
+            width: 120px;
+            height: 2px;
+            background: #18181b;
+            border-radius: 1px;
+            margin-top: 32px;
+            overflow: hidden;
+            opacity: 0;
+            animation: splashTextIn 0.4s ease-out 0.9s forwards;
+        }
+        .splash-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6, #22d3ee);
+            border-radius: 1px;
+            animation: splashBarFill 1s ease-in-out 1s forwards;
+        }
+        @keyframes splashGlow {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+            100% { opacity: 0.5; transform: scale(1); }
+        }
+        @keyframes splashBoxIn {
+            0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes splashTextIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes splashBarFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* ─── Hero Glitch/Shimmer ─── */
+        .hero-glitch {
+            position: relative;
+            display: inline-block;
+        }
+        .hero-glitch::before,
+        .hero-glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .hero-glitch::before {
+            color: #22d3ee;
+            z-index: -1;
+            animation: glitchShift 4s ease-in-out infinite;
+        }
+        .hero-glitch::after {
+            color: #f43f5e;
+            z-index: -1;
+            animation: glitchShift 4s ease-in-out infinite reverse;
+        }
+        @keyframes glitchShift {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            5% { clip-path: inset(20% 0 60% 0); transform: translate(-2px, 1px); }
+            10% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            45% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -1px); }
+            50% { clip-path: inset(0 0 0 0); transform: translate(0); }
+        }
+        .hero-shimmer {
+            background: linear-gradient(90deg,
+                #fafafa 0%, #fafafa 40%,
+                #f43f5e 45%, #8b5cf6 50%, #22d3ee 55%,
+                #fafafa 60%, #fafafa 100%);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: heroShimmer 4s ease-in-out infinite;
+        }
+        @keyframes heroShimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        @keyframes splashShimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* ─── Light Theme ─── */
+        html.light body {
+            background: #f4f4f5;
+            color: #27272a;
+        }
+        html.light body::before {
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(139,92,246,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(244,63,94,0.04) 0%, transparent 60%);
+        }
+        html.light .glass {
+            background: rgba(255,255,255,.7);
+            border-color: rgba(212,212,216,.6);
+        }
+        html.light .input-kx {
+            background: #ffffff;
+            border-color: #d4d4d8;
+            color: #18181b;
+        }
+        html.light .input-kx::placeholder { color: #a1a1aa; }
+        html.light .input-kx:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.1); }
+        html.light select.input-kx option { background: #ffffff; color: #18181b; }
+        html.light .output-box { background: #ffffff; border-color: #d4d4d8; color: #3f3f46; }
+        html.light .tag-btn { background: #ffffff; border-color: #d4d4d8; color: #52525b; }
+        html.light .tag-btn.active { background: rgba(244,63,94,.06); border-color: #f43f5e; color: #e11d48; }
+        html.light .tag-btn:hover { border-color: #f43f5e; color: #e11d48; }
+        html.light .nav-tab { color: #71717a; }
+        html.light .nav-tab:hover { color: #18181b; }
+        html.light .nav-tab.active { background: rgba(244,63,94,.08); color: #e11d48; border-color: rgba(244,63,94,.3); }
+        html.light .btn-action { background: #ffffff; border-color: #d4d4d8; color: #52525b; }
+        html.light .btn-action:hover { border-color: #0891b2; color: #0891b2; }
+        html.light .prov-btn { background: #ffffff; border-color: #d4d4d8; color: #71717a; }
+        html.light .prov-btn.active { border-color: #8b5cf6; background: rgba(139,92,246,.06); color: #7c3aed; }
+        html.light .tpl-btn { background: rgba(34,211,238,.04); border-color: rgba(34,211,238,.15); color: #0891b2; }
+        html.light .btn-outline { border-color: rgba(244,63,94,.3); color: #e11d48; }
+        html.light .btn-outline:hover { background: rgba(244,63,94,.06); }
+        html.light .qw { background: rgba(34,211,238,.06); border-color: rgba(34,211,238,.2); color: #0891b2; }
+        html.light .drop-zone { border-color: #d4d4d8; background: rgba(250,250,250,.5); }
+        html.light .drop-zone:hover { border-color: #f43f5e; background: rgba(244,63,94,.03); }
+        html.light .saved-card { background: #ffffff; border-left-color: #f43f5e; }
+        html.light .var-card { background: #ffffff; border-color: #d4d4d8; color: #52525b; }
+        html.light .toggle-track { background: #d4d4d8; }
+        html.light ::-webkit-scrollbar-track { background: #e4e4e7; }
+        html.light ::-webkit-scrollbar-thumb { background: #a1a1aa; }
+        html.light .notif.success { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.2); color: #e11d48; }
+        html.light .rule-card { background: rgba(255,255,255,.6); border-color: #d4d4d8; }
+        html.light #bgArtCanvas { opacity: 0.4; }
+        html.light .bg-kx-bg, html.light [class*="bg-kx-bg"] { background-color: #ffffff !important; }
+        html.light .bg-kx-surface { background-color: #f4f4f5 !important; }
+        html.light .bg-kx-card { background-color: #ffffff !important; }
+        html.light .text-kx-white { color: #18181b !important; }
+        html.light .text-kx-text { color: #52525b !important; }
+        html.light .text-kx-muted { color: #a1a1aa !important; }
+        html.light .border-kx-border { border-color: #d4d4d8 !important; }
+        html.light .hero-shimmer { background: linear-gradient(90deg, #18181b 0%, #18181b 40%, #f43f5e 45%, #8b5cf6 50%, #22d3ee 55%, #18181b 60%, #18181b 100%); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; }
+        html.light .hero-glitch::before { color: rgba(34,211,238,0.3); }
+        html.light .hero-glitch::after { color: rgba(244,63,94,0.3); }
+
+        /* ─── Theme Toggle Button ─── */
+        .theme-toggle {
+            background: rgba(139,92,246,.08);
+            border: 1px solid rgba(139,92,246,.25);
+            color: #a78bfa;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 16px;
+        }
+        .theme-toggle:hover { box-shadow: 0 0 12px rgba(139,92,246,.2); border-color: #8b5cf6; }
+
+        /* ─── Footer ─── */
+        .kx-footer {
+            border-top: 1px solid rgba(39,39,42,.5);
+            background: rgba(9,9,11,.8);
+            backdrop-filter: blur(16px);
+        }
+        html.light .kx-footer {
+            background: rgba(244,244,245,.8);
+            border-top-color: rgba(212,212,216,.6);
+        }
+        .kx-footer a {
+            color: #71717a;
+            transition: color .2s;
+        }
+        .kx-footer a:hover { color: #f43f5e; }
+        .footer-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(244,63,94,.2), rgba(139,92,246,.2), transparent);
+        }
+
+        /* ─── Draggable Effects ─── */
+        .effect-panel { cursor: grab; transition: transform 0.2s, box-shadow 0.2s; }
+        .effect-panel:active { cursor: grabbing; }
+        .effect-panel.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            box-shadow: 0 0 20px rgba(244,63,94,.3);
+        }
+        .effect-panel.drag-over {
+            border-color: #22d3ee !important;
+            box-shadow: 0 0 15px rgba(34,211,238,.2);
+        }
+        .drag-handle {
+            color: #3f3f46;
+            cursor: grab;
+            font-size: 10px;
+            letter-spacing: 2px;
+            transition: color .2s;
+        }
+        .effect-panel:hover .drag-handle { color: #71717a; }
+
+        /* ─── Keyboard Shortcut Hints ─── */
+        .kbd-hint {
+            display: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(34,211,238,.08);
+            border: 1px solid rgba(34,211,238,.2);
+            color: #22d3ee;
+            margin-left: 6px;
+        }
+        @media (min-width: 768px) { .kbd-hint { display: inline; } }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- ═══════════════ SPLASH SCREEN ═══════════════ -->
+<div id="splashScreen">
+    <div class="splash-logo">
+        <div class="glow"></div>
+        <div class="box"><span>K</span></div>
+    </div>
+    <div class="splash-title">KHMERIX</div>
+    <div class="splash-sub">Studio Suite · Creative Minds Cambodia</div>
+    <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+
+<!-- ═══════════════ GENERATIVE BACKGROUND ART ═══════════════ -->
+<canvas id="bgArtCanvas" aria-hidden="true"></canvas>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav class="fixed top-0 w-full z-50 glass border-b border-kx-border/50" style="border-image: linear-gradient(90deg, transparent, rgba(244,63,94,0.4), rgba(139,92,246,0.4), rgba(34,211,238,0.4), transparent) 1; border-image-slice: 1; border-bottom-width: 2px;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20 md:h-24">
+            <!-- Logo -->
+            <div class="flex items-center gap-4 cursor-pointer select-none group" onclick="switchMainTab('converter')">
+                <div class="relative w-12 h-12 md:w-14 md:h-14">
+                    <div class="absolute inset-0 bg-gradient-to-br from-kx-pink via-kx-violet to-kx-cyan rounded-xl blur-md opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    <div class="relative w-12 h-12 md:w-14 md:h-14 bg-kx-bg rounded-xl flex items-center justify-center border border-kx-pink/40 group-hover:border-kx-pink/60 transition-colors">
+                        <span class="font-display font-extrabold text-transparent text-2xl md:text-3xl bg-clip-text bg-gradient-to-br from-kx-pink to-kx-violet">K</span>
+                    </div>
+                </div>
+                <div class="flex flex-col leading-tight">
+                    <span class="font-display font-extrabold text-2xl md:text-3xl tracking-[.15em] text-transparent bg-clip-text bg-gradient-to-r from-kx-white via-kx-rose to-kx-white group-hover:from-kx-pink group-hover:via-kx-violet group-hover:to-kx-cyan transition-all duration-500" style="text-shadow: 0 0 30px rgba(244,63,94,0.3);">KHMERIX</span>
+                    <span class="font-body text-[10px] md:text-xs text-kx-text tracking-[.25em] uppercase">Studio Suite · Creative Minds Cambodia</span>
+                </div>
+            </div>
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center gap-3">
+                <button onclick="switchMainTab('converter')" id="nav-converter" class="nav-tab active px-6 py-2.5 rounded-xl text-sm">Audio Converter</button>
+                <button onclick="switchMainTab('prompt-lab')" id="nav-prompt" class="nav-tab px-6 py-2.5 rounded-xl text-sm">Prompt Lab</button>
+                <button onclick="toggleSavedModal()" class="btn-action px-5 py-2.5 rounded-xl ml-3 flex items-center gap-2 text-sm">
+                    ⭐ Saved (<span id="saved-count">0</span>)
+                </button>
+                <button onclick="toggleTheme()" class="theme-toggle ml-2" id="themeToggle" title="Toggle Light/Dark Theme">🌙</button>
+            </div>
+
+            <!-- Mobile Nav -->
+            <div class="md:hidden flex items-center gap-2">
+                <button onclick="toggleTheme()" class="theme-toggle" id="themeToggleMobile" title="Toggle Theme">🌙</button>
+                <button onclick="toggleSavedModal()" class="btn-action px-3 py-1.5 rounded-lg text-xs">⭐ <span id="saved-count-mobile">0</span></button>
+            </div>
+        </div>
+    </div>
+    <!-- Bottom glow accent -->
+    <div class="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-kx-pink/40 to-transparent"></div>
+    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-1/2 h-8 bg-gradient-to-b from-kx-pink/10 to-transparent blur-xl pointer-events-none"></div>
+</nav>
+
+<!-- Mobile Tab Bar -->
+<div class="md:hidden fixed top-20 left-0 right-0 z-40 glass border-b border-kx-border/50 p-2 flex gap-2">
+    <button onclick="switchMainTab('converter')" id="mob-nav-converter" class="nav-tab active flex-1 py-2 rounded-lg text-xs text-center">Audio Converter</button>
+    <button onclick="switchMainTab('prompt-lab')" id="mob-nav-prompt" class="nav-tab flex-1 py-2 rounded-lg text-xs text-center">Prompt Lab</button>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<main class="pt-32 md:pt-28 pb-20 px-4 max-w-7xl mx-auto relative z-10">
+
+<!-- ════════════════════════════════════════════ -->
+<!-- AUDIO CONVERTER SECTION                     -->
+<!-- ════════════════════════════════════════════ -->
+<section id="converter-section" class="main-section active">
+    <!-- Hero -->
+    <div class="text-center mb-10 relative">
+        <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-15">
+            <div class="absolute bottom-0 left-0 right-0 h-24 flex items-end justify-center gap-[3px]">
+                <div class="eq-bar" style="animation-delay:0s"></div>
+                <div class="eq-bar" style="animation-delay:.1s"></div>
+                <div class="eq-bar" style="animation-delay:.2s"></div>
+                <div class="eq-bar" style="animation-delay:.3s"></div>
+                <div class="eq-bar" style="animation-delay:.4s"></div>
+                <div class="eq-bar" style="animation-delay:.5s"></div>
+                <div class="eq-bar" style="animation-delay:.6s"></div>
+            </div>
+        </div>
+        <h1 class="font-display font-extrabold text-4xl md:text-6xl mb-3 leading-none tracking-tight">
+            <span class="hero-shimmer">STUDIO</span>
+            <span class="hero-glitch bg-gradient-to-r from-kx-pink via-kx-violet to-kx-cyan bg-clip-text text-transparent ml-3" data-text="PROCESSOR">PROCESSOR</span>
+        </h1>
+        <p class="font-body text-kx-text text-base max-w-xl mx-auto">Professional audio processing with real-time effects, EQ, and waveform visualization</p>
+        <p class="font-mono text-[11px] text-kx-cyan mt-1.5 tracking-wider">Powered by Web Audio API · 64-bit Floating Point</p>
+    </div>
+
+    <!-- Audio Interface -->
+    <div class="max-w-5xl mx-auto mb-16">
+        <div class="glass rounded-2xl p-1">
+            <div class="bg-kx-bg rounded-xl p-5 md:p-7 relative">
+
+                <!-- Upload -->
+                <div class="mb-6">
+                    <h3 class="font-display font-bold text-lg mb-1 flex items-center gap-2 text-kx-white">
+                        <svg class="w-4 h-4 text-kx-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                        Load Audio
+                    </h3>
+                    <p class="font-body text-xs text-kx-text mb-3 uppercase tracking-wider">Drag & Drop or Click to Browse</p>
+                    <div id="dropZone" class="drop-zone rounded-xl p-7 text-center cursor-pointer group">
+                        <input type="file" id="fileInput" accept="audio/*" class="hidden">
+                        <svg class="w-12 h-12 text-kx-violet mx-auto mb-3 group-hover:text-kx-pink transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="font-display font-bold text-kx-white mb-0.5 group-hover:text-kx-cyan transition">Select Audio File</p>
+                        <p class="font-body text-xs text-kx-muted uppercase tracking-widest">MP3 · WAV · FLAC · OGG · Max 50MB</p>
+                    </div>
+                </div>
+
+                <!-- Audio Info & Waveform -->
+                <div id="audioInfoArea" class="hidden mb-6">
+                    <div class="glass rounded-xl p-4 mb-3 border border-kx-cyan/20">
+                        <div class="flex justify-between items-center flex-wrap gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-kx-pink/10 flex items-center justify-center border border-kx-pink/20">
+                                    <svg class="w-5 h-5 text-kx-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/></svg>
+                                </div>
+                                <div>
+                                    <p id="audioFilename" class="font-body font-semibold text-kx-white text-sm">filename.mp3</p>
+                                    <p id="audioSpecs" class="text-xs text-kx-cyan font-mono">44.1kHz | Stereo | 3:24</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="togglePlayback()" id="playBtn" class="btn-gen px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                                    <span id="playIcon">▶</span> <span id="playText">PLAY</span>
+                                </button>
+                                <button onclick="resetAudio()" class="btn-action px-3 py-2.5 rounded-xl text-sm">🔄</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Waveform -->
+                    <div class="relative bg-kx-bg rounded-xl overflow-hidden border border-kx-violet/20" style="height:120px">
+                        <canvas id="waveformCanvas"></canvas>
+                        <div id="playbackIndicator" class="absolute top-0 bottom-0 w-0.5 bg-kx-pink shadow-[0_0_8px_rgba(244,63,94,.7)] pointer-events-none" style="left:0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-1.5 font-mono text-xs text-kx-cyan">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Effects Rack -->
+                <div id="effectsArea" class="hidden mb-6">
+                    <h4 class="font-display font-bold text-base text-kx-pink mb-3 flex items-center gap-2">
+                        🎛️ EFFECTS RACK
+                        <span class="text-[10px] text-kx-text font-body ml-auto font-normal">Toggle effects with the switches</span>
+                    </h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- EQ -->
+                        <div class="glass rounded-xl p-4 effect-panel" id="eq-panel" draggable="true">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-kx-pink" id="eq-indicator"></span> EQ
+                                </span>
+                                <div class="toggle-track on" id="eqToggle" onclick="toggleEffectUI('eq')"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>LOW (320Hz)</span><span id="lowGainVal" class="text-kx-pink">0dB</span></div>
+                                    <input type="range" id="lowGain" min="-12" max="12" value="0" class="w-full" oninput="updateEQ('low', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>MID (1kHz)</span><span id="midGainVal" class="text-kx-cyan">0dB</span></div>
+                                    <input type="range" id="midGain" min="-12" max="12" value="0" class="w-full" oninput="updateEQ('mid', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>HIGH (3.2kHz)</span><span id="highGainVal" class="text-kx-acid">0dB</span></div>
+                                    <input type="range" id="highGain" min="-12" max="12" value="0" class="w-full" oninput="updateEQ('high', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Compressor -->
+                        <div class="glass rounded-xl p-4 effect-panel" id="comp-panel" draggable="true">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-kx-muted" id="comp-indicator"></span> COMPRESSOR
+                                </span>
+                                <div class="toggle-track" id="compToggle" onclick="toggleEffectUI('compressor')"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>THRESHOLD</span><span id="thresholdVal">-24dB</span></div>
+                                    <input type="range" id="threshold" min="-60" max="0" value="-24" class="w-full" oninput="updateCompressor('threshold', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>RATIO</span><span id="ratioVal">4:1</span></div>
+                                    <input type="range" id="ratio" min="1" max="20" value="4" class="w-full" oninput="updateCompressor('ratio', this.value)">
+                                </div>
+                                <div class="h-3 bg-kx-bg rounded overflow-hidden relative border border-kx-border">
+                                    <div id="gainReduction" class="absolute top-0 left-0 h-full bg-kx-pink transition-all duration-100" style="width:0%"></div>
+                                    <span class="absolute inset-0 flex items-center justify-center text-[9px] text-kx-text font-mono">GR</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Reverb -->
+                        <div class="glass rounded-xl p-4 effect-panel" id="reverb-panel" draggable="true">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-kx-muted" id="reverb-indicator"></span> REVERB
+                                </span>
+                                <div class="toggle-track" id="reverbToggle" onclick="toggleEffectUI('reverb')"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>ROOM SIZE</span><span id="roomSizeVal">50%</span></div>
+                                    <input type="range" id="roomSize" min="0" max="100" value="50" class="w-full" oninput="updateReverb('size', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>WET MIX</span><span id="reverbMixVal">30%</span></div>
+                                    <input type="range" id="reverbMix" min="0" max="100" value="30" class="w-full" oninput="updateReverb('mix', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>DAMPING</span><span id="dampingVal">50%</span></div>
+                                    <input type="range" id="damping" min="0" max="100" value="50" class="w-full" oninput="updateReverb('damping', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Distortion -->
+                        <div class="glass rounded-xl p-4 effect-panel" id="dist-panel" draggable="true">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-kx-muted" id="dist-indicator"></span> DISTORTION
+                                </span>
+                                <div class="toggle-track" id="distToggle" onclick="toggleEffectUI('distortion')"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>AMOUNT</span><span id="distAmountVal">0%</span></div>
+                                    <input type="range" id="distAmount" min="0" max="100" value="0" class="w-full" oninput="updateDistortion('amount', this.value)">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>TONE</span><span id="distToneVal">50%</span></div>
+                                    <input type="range" id="distTone" min="0" max="100" value="50" class="w-full" oninput="updateDistortion('tone', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Stereo -->
+                        <div class="glass rounded-xl p-4 effect-panel" id="stereo-panel" draggable="true">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-kx-pink" id="stereo-indicator"></span> STEREO
+                                </span>
+                                <div class="toggle-track on" id="stereoToggle" onclick="toggleEffectUI('stereo')"></div>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>WIDTH</span><span id="widthVal">100%</span></div>
+                                    <input type="range" id="width" min="0" max="200" value="100" class="w-full" oninput="updateStereo('width', this.value)">
+                                </div>
+                                <div class="flex justify-between text-[10px] text-kx-muted px-1"><span>MONO</span><span>STEREO</span><span>WIDE</span></div>
+                            </div>
+                        </div>
+                        <!-- Master Output -->
+                        <div class="glass rounded-xl p-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-mono text-xs text-kx-cyan uppercase tracking-wider">MASTER</span>
+                                <span id="outputLevel" class="text-xs text-kx-acid font-mono">0dB</span>
+                            </div>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <div class="flex justify-between text-[11px] text-kx-text mb-1"><span>GAIN</span><span id="outputGainVal">0dB</span></div>
+                                    <input type="range" id="outputGain" min="-12" max="12" value="0" class="w-full" oninput="updateOutputGain(this.value)">
+                                </div>
+                                <div class="h-12 bg-kx-bg rounded overflow-hidden relative border border-kx-border flex items-end justify-around px-2 pb-1 gap-2">
+                                    <div class="flex flex-col items-center gap-0.5 flex-1">
+                                        <div id="meterL" class="w-full bg-gradient-to-t from-kx-pink via-kx-gold to-kx-acid rounded-t transition-all duration-75" style="height:5%"></div>
+                                        <span class="text-[9px] text-kx-muted font-mono">L</span>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-0.5 flex-1">
+                                        <div id="meterR" class="w-full bg-gradient-to-t from-kx-pink via-kx-gold to-kx-acid rounded-t transition-all duration-75" style="height:5%"></div>
+                                        <span class="text-[9px] text-kx-muted font-mono">R</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export -->
+                <div id="exportArea" class="hidden">
+                    <h4 class="font-display font-bold text-base text-kx-pink mb-3 flex items-center gap-2">💾 EXPORT</h4>
+                    <div class="grid md:grid-cols-3 gap-3 mb-4">
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Format</label>
+                            <select id="exportFormat" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                                <option value="wav">WAV - Lossless PCM</option>
+                                <option value="mp3">MP3 - Compressed</option>
+                                <option value="ogg">OGG Vorbis</option>
+                                <option value="flac">FLAC - Lossless</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Quality</label>
+                            <select id="exportQuality" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                                <option value="high">High (320kbps / 48kHz)</option>
+                                <option value="medium">Medium (192kbps / 44.1kHz)</option>
+                                <option value="low">Low (128kbps / 44.1kHz)</option>
+                                <option value="master">Master (24-bit / 96kHz)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="processAndExport()" class="w-full btn-gen py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">⚡ PROCESS & EXPORT</button>
+                        </div>
+                    </div>
+                    <div id="processingStatus" class="hidden">
+                        <div class="flex items-center justify-between mb-2 font-mono text-xs uppercase tracking-wider">
+                            <span class="text-kx-cyan flex items-center gap-2"><span class="spinner"></span> <span id="processText">Processing...</span></span>
+                            <span class="text-kx-pink font-bold" id="processPercent">0%</span>
+                        </div>
+                        <div class="h-1.5 bg-kx-surface rounded-full overflow-hidden border border-kx-border">
+                            <div id="processBar" class="h-full prog-bar rounded-full transition-all duration-300" style="width:0%"></div>
+                        </div>
+                        <div class="mt-1.5 text-[11px] text-kx-muted font-mono" id="processDetail">Initializing...</div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div id="instructions" class="text-center py-6 text-kx-text font-body">
+                    <p class="mb-1 text-base">Load an audio file to start processing</p>
+                    <p class="text-xs text-kx-muted">Supports MP3, WAV, FLAC, OGG up to 50MB</p>
+                    <div class="mt-3 flex justify-center gap-4 text-[11px]">
+                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-kx-pink"></span> Real-time EQ</span>
+                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-kx-cyan"></span> Dynamics</span>
+                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-kx-acid"></span> Effects</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- PROMPT LAB SECTION                          -->
+<!-- ════════════════════════════════════════════ -->
+<section id="prompt-lab-section" class="main-section">
+    <!-- Sub Navigation -->
+    <div class="flex flex-wrap justify-center gap-1.5 mb-6 sticky top-16 md:top-[64px] z-30 glass p-3 rounded-xl border border-kx-border/50">
+        <button class="nav-tab active px-3 py-1.5 rounded-lg text-xs" data-tab="music" onclick="switchPromptTab('music')">🎵 Music</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="lyrics" onclick="switchPromptTab('lyrics')">🎤 Lyrics</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="image" onclick="switchPromptTab('image')">🎨 Images</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="video" onclick="switchPromptTab('video')">🎬 Video</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="education" onclick="switchPromptTab('education')">📚 Education</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="keywords" onclick="switchPromptTab('keywords')">🔑 Keywords</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="upload" onclick="switchPromptTab('upload')">📤 Upload</button>
+    </div>
+
+    <!-- ═══ MUSIC TAB ═══ -->
+    <div id="prompt-music" class="ptab active">
+        <div class="space-y-4">
+            <div class="glass rounded-2xl p-5 md:p-6">
+                <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎵 BEAT PROMPT ENGINE</h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-5">
+                    <button class="tag-btn active py-2.5 rounded-lg" onclick="selectTag('.genre-btn',this)">Dark Trap</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Drill</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Hip Hop</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Rage</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Phonk</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Memphis</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">DnB</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Trance</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">House</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Techno</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Dubstep</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Industrial</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Ambient</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Synthwave</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Lo-Fi</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Cloud Rap</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Hyperpop</button>
+                    <button class="tag-btn py-2.5 rounded-lg genre-btn" onclick="selectTag('.genre-btn',this)">Witch House</button>
+                </div>
+                <div class="grid md:grid-cols-3 gap-3 mb-5">
+                    <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Mood</label>
+                        <select id="music-mood" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                            <option value="dark">Dark</option><option value="aggressive">Aggressive</option><option value="hype">Hype</option>
+                            <option value="melancholic">Melancholic</option><option value="mysterious">Mysterious</option><option value="ethereal">Ethereal</option>
+                            <option value="nostalgic">Nostalgic</option><option value="sinister">Sinister</option><option value="triumphant">Triumphant</option>
+                        </select></div>
+                    <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Energy</label>
+                        <select id="music-energy" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                            <option value="low">Low (Chill)</option><option value="mid" selected>Mid (Balanced)</option>
+                            <option value="high">High (Intense)</option><option value="extreme">Extreme</option>
+                        </select></div>
+                    <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">BPM</label>
+                        <select id="music-bpm" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                            <option value="auto">Auto Detect</option><option value="slow">Slow (60-80)</option>
+                            <option value="mid" selected>Mid (120-140)</option><option value="fast">Fast (150-170)</option>
+                            <option value="dnb">DnB (174)</option><option value="hardcore">Hardcore (200+)</option>
+                        </select></div>
+                </div>
+                <!-- Keywords -->
+                <div class="mb-5">
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block flex justify-between">
+                        <span>Keywords / Vibe</span><span class="text-kx-muted" id="counter-music-keywords">0 chars</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="music-keywords" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="Enter keywords or click quick-add below..." oninput="updateLiveCounter('music-keywords')">
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('music-keywords')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-2.5">
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','midnight')">🌙 midnight</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','808')">🔊 808</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','distorted')">⚡ distorted</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','vinyl crackle')">💿 vinyl</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','haunting')">🎭 haunting</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','euphoric')">😇 euphoric</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','sidechain')">📉 sidechain</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','granular')">✨ granular</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','analog')">📻 analog</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('music-keywords','menacing')">😈 menacing</span>
+                    </div>
+                </div>
+                <!-- AI Provider -->
+                <div class="glass rounded-lg p-3 mb-4 border border-kx-violet/20">
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-violet mb-2 block">AI Enhancement</label>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button class="prov-btn active py-2 rounded-lg text-xs" onclick="selectProvider(this)">📋 Template</button>
+                        <button class="prov-btn py-2 rounded-lg text-xs" onclick="selectProvider(this)">🤖 Claude</button>
+                        <button class="prov-btn py-2 rounded-lg text-xs" onclick="selectProvider(this)">🧠 OpenAI</button>
+                        <button class="prov-btn py-2 rounded-lg text-xs" onclick="selectProvider(this)">✨ Gemini</button>
+                        <button class="prov-btn py-2 rounded-lg text-xs" onclick="selectProvider(this)">🏠 Ollama</button>
+                    </div>
+                </div>
+                <!-- Templates -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','cinematic')">🎬 Cinematic</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','lofi')">☕ Lo-Fi</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','workout')">💪 Workout</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','night-drive')">🌃 Night Drive</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','meditation')">🧘 Meditation</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','horror')">🔪 Horror</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','space')">🚀 Space</button>
+                    <button class="tpl-btn py-2 rounded-lg" onclick="applyTemplate('music','rainy')">🌧️ Rainy Day</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <button class="var-card py-2.5 rounded-lg text-center" onclick="generateVariation(1)">Variation 1</button>
+                    <button class="var-card py-2.5 rounded-lg text-center" onclick="generateVariation(2)">Variation 2</button>
+                    <button class="var-card py-2.5 rounded-lg text-center" onclick="generateVariation(3)">Variation 3</button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="randomizePrompt('music')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Randomize</button>
+                    <button onclick="generateMusicPrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate Prompt</button>
+                </div>
+                <button onclick="generateAI('music')" class="w-full btn-ai mt-2 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">✨ AI Enhanced</button>
+            </div>
+        </div>
+        <!-- Music Output -->
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED BEAT PROMPT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('music')" id="save-music" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('music')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="speakText('music')" class="btn-action px-2.5 py-1.5 rounded-lg">🔊</button>
+                    <button onclick="exportPrompt('music')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="music-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">
+                Select genre and generate your beat prompt...
+            </div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="music-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="music-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ LYRICS TAB ═══ -->
+    <div id="prompt-lyrics" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎤 LYRIC ENGINE</h3>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-5">
+                <button class="tag-btn active py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Trap</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Drill</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Melodic</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Conscious</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Love</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Story</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Trap Metal</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Emo Rap</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Boss/Money</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Street</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Party</button>
+                <button class="tag-btn py-2.5 rounded-lg lyrics-btn" onclick="selectTag('.lyrics-btn',this)">Diss Track</button>
+            </div>
+            <div class="space-y-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Topic / Theme</label>
+                    <div class="relative">
+                        <input type="text" id="lyrics-topic" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="What is the song about?" oninput="updateLiveCounter('lyrics-topic')">
+                        <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('lyrics-topic')">🎤</button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        <span class="qw px-2.5 py-1 rounded" onclick="setInput('lyrics-topic','overcoming struggle')">💪 overcoming</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="setInput('lyrics-topic','lost love')">💔 lost love</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="setInput('lyrics-topic','street life')">🌃 street life</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="setInput('lyrics-topic','making money')">💵 money</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="setInput('lyrics-topic','betrayal by friends')">🗡️ betrayal</span>
+                    </div>
+                </div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Keywords to Include</label>
+                    <input type="text" id="lyrics-keywords" class="w-full input-kx rounded-lg px-3 py-3 text-sm" placeholder="words, phrases, references..." oninput="updateLiveCounter('lyrics-keywords')">
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','ice')">❄️ ice</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','drip')">💧 drip</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','savage')">🐺 savage</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','vibes')">✨ vibes</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','demons')">😈 demons</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('lyrics-keywords','luxury')">💎 luxury</span>
+                    </div>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Mood</label>
+                    <select id="lyrics-mood" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="dark">Dark</option><option value="aggressive">Aggressive</option><option value="melancholic">Melancholic</option>
+                        <option value="romantic">Romantic</option><option value="hype">Hype</option><option value="confident">Confident</option>
+                        <option value="vulnerable">Vulnerable</option><option value="rebellious">Rebellious</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Structure</label>
+                    <select id="lyrics-structure" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="verse-chorus">Verse-Chorus</option><option value="verse-chorus-bridge">V-C-V-C-B-C</option>
+                        <option value="aab">AAB (Blues)</option><option value="free">Free Verse</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Language Style</label>
+                    <select id="lyrics-style" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="modern">Modern Slang</option><option value="classic">Classic Hip-Hop</option>
+                        <option value="poetic">Poetic/Lyrical</option><option value="complex">Complex/Wordplay</option>
+                    </select></div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="randomizePrompt('lyrics')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Random</button>
+                <button onclick="generateLyricsPrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate Lyrics</button>
+            </div>
+            <button onclick="generateAI('lyrics')" class="w-full btn-ai mt-2 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">✨ AI Enhanced</button>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED LYRICS</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('lyrics')" id="save-lyrics" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('lyrics')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('lyrics')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="lyrics-output" class="output-box rounded-lg p-5 min-h-[250px] text-sm leading-relaxed text-kx-text whitespace-pre-line">Select style and generate lyrics...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="lyrics-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="lyrics-words" class="text-kx-cyan">0</span> words</span>
+                <span>🎵 <span id="lyrics-lines" class="text-kx-cyan">0</span> lines</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ IMAGE TAB ═══ -->
+    <div id="prompt-image" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎨 ART PROMPT ENGINE</h3>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-5">
+                <button class="tag-btn active py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Photorealistic</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Digital Art</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Anime</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Oil Painting</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Cyberpunk</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">3D Render</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Watercolor</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Pencil</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Pixel Art</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Concept</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Surrealist</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Minimalist</button>
+            </div>
+            <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Subject / Description</label>
+                <div class="relative">
+                    <input type="text" id="image-subject" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="Describe your visual..." oninput="updateLiveCounter('image-subject')">
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('image-subject')">🎤</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','futuristic warrior')">⚔️ warrior</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','neon cityscape')">🏙️ city</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','mystical forest')">🌲 forest</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','ancient temple')">⛩️ temple</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','space station')">🚀 space</span>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Lighting</label>
+                    <select id="image-lighting" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="natural">Natural</option><option value="dramatic">Dramatic</option><option value="neon">Neon</option>
+                        <option value="golden-hour">Golden Hour</option><option value="moody">Moody</option><option value="cinematic">Cinematic</option>
+                        <option value="volumetric">Volumetric</option><option value="bioluminescent">Bioluminescent</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Aspect Ratio</label>
+                    <select id="image-ratio" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="1:1">1:1 Square</option><option value="16:9">16:9 Wide</option>
+                        <option value="9:16">9:16 Portrait</option><option value="4:3">4:3 Classic</option><option value="21:9">21:9 Ultra Wide</option>
+                    </select></div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="randomizePrompt('image')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Random</button>
+                <button onclick="generateImagePrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate Image Prompt</button>
+            </div>
+            <button onclick="generateAI('image')" class="w-full btn-ai mt-2 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">✨ AI Enhanced</button>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED IMAGE PROMPT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('image')" id="save-image" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('image')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('image')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="image-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Select style and generate image prompt...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="image-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="image-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ VIDEO TAB ═══ -->
+    <div id="prompt-video" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎬 VIDEO PROMPT ENGINE</h3>
+            <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Scene Description</label>
+                <div class="relative">
+                    <input type="text" id="video-scene" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="Describe your video scene..." oninput="updateLiveCounter('video-scene')">
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('video-scene')">🎤</button>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Camera Work</label>
+                    <select id="video-camera" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="static">Static/Locked</option><option value="handheld">Handheld</option>
+                        <option value="drone">Drone Aerial</option><option value="tracking">Tracking Shot</option>
+                        <option value="slow-motion">Slow Motion</option><option value="time-lapse">Time Lapse</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Visual Mood</label>
+                    <select id="video-mood" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="cinematic">Cinematic</option><option value="dark">Dark/Gritty</option>
+                        <option value="dreamy">Dreamy</option><option value="documentary">Documentary</option>
+                        <option value="music-video">Music Video</option><option value="commercial">Commercial</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Duration</label>
+                    <select id="video-duration" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="5s">5 seconds</option><option value="10s" selected>10 seconds</option>
+                        <option value="15s">15 seconds</option><option value="30s">30 seconds</option>
+                    </select></div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                <button class="tpl-btn py-2 rounded-lg text-xs" onclick="applyTemplate('video','slow-motion')">🎥 Slow-Mo</button>
+                <button class="tpl-btn py-2 rounded-lg text-xs" onclick="applyTemplate('video','drone')">🚁 Drone</button>
+                <button class="tpl-btn py-2 rounded-lg text-xs" onclick="applyTemplate('video','tracking')">🏃 Tracking</button>
+                <button class="tpl-btn py-2 rounded-lg text-xs" onclick="applyTemplate('video','whip-pan')">🔄 Whip Pan</button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="randomizePrompt('video')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Random</button>
+                <button onclick="generateVideoPrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate Video Prompt</button>
+            </div>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED VIDEO PROMPT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('video')" id="save-video" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('video')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('video')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="video-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Configure and generate your video prompt...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="video-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="video-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ EDUCATION TAB ═══ -->
+    <div id="prompt-education" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">📚 EDUCATION ENGINE</h3>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-2 mb-5">
+                <button class="tag-btn active py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Lesson Plan</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Quiz</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Summary</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">🌍 ESL</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Worksheet</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Project</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Discussion</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Essay</button>
+                <button class="tag-btn py-2.5 rounded-lg edu-btn" onclick="selectTag('.edu-btn',this)">Presentation</button>
+            </div>
+            <div class="mb-5">
+                <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Topic / Subject</label>
+                <div class="relative">
+                    <input type="text" id="edu-topic" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="What do you want to teach/learn about?" oninput="updateLiveCounter('edu-topic')">
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('edu-topic')">🎤</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('edu-topic','Photosynthesis')">🌱 Biology</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('edu-topic','World War II')">⚔️ History</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('edu-topic','Quadratic Equations')">📐 Math</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('edu-topic','Climate Change')">🌍 Science</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('edu-topic','Python Programming')">💻 Coding</span>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Grade Level</label>
+                    <select id="edu-level" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="elementary">Elementary (K-5)</option><option value="middle">Middle (6-8)</option>
+                        <option value="high">High School (9-12)</option><option value="college">College</option><option value="professional">Professional</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Tone</label>
+                    <select id="edu-tone" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="formal">Formal</option><option value="casual">Casual</option>
+                        <option value="enthusiastic">Enthusiastic</option><option value="humorous">Humorous</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Length</label>
+                    <select id="edu-length" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="brief">Brief</option><option value="standard" selected>Standard</option><option value="detailed">Detailed</option>
+                    </select></div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="randomizePrompt('education')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Random</button>
+                <button onclick="generateEducationPrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate</button>
+            </div>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">EDUCATION OUTPUT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('education')" id="save-education" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('education')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('education')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="education-output" class="output-box rounded-lg p-5 min-h-[250px] text-sm leading-relaxed text-kx-text whitespace-pre-line">Select type and generate educational content...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="education-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="education-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ KEYWORDS TAB ═══ -->
+    <div id="prompt-keywords" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🔑 KEYWORD BUILDER</h3>
+            <div class="space-y-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Main Topic</label>
+                    <input type="text" id="kw-topic" class="w-full input-kx rounded-lg px-3 py-3 text-sm" placeholder="What is your content about?" oninput="updateLiveCounter('kw-topic')"></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Keywords (comma separated)</label>
+                    <input type="text" id="kw-keywords" class="w-full input-kx rounded-lg px-3 py-3 text-sm" placeholder="ai, music, dark, trap..." oninput="updateLiveCounter('kw-keywords')">
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('kw-keywords','professional')">💼 professional</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('kw-keywords','creative')">🎨 creative</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('kw-keywords','high-quality')">⭐ quality</span>
+                        <span class="qw px-2.5 py-1 rounded" onclick="addQuickWord('kw-keywords','innovative')">💡 innovative</span>
+                    </div></div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-3 mb-5">
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Style</label>
+                    <select id="kw-style" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="detailed">Detailed</option><option value="concise">Concise</option>
+                        <option value="technical">Technical</option><option value="creative">Creative</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Length</label>
+                    <select id="kw-length" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="short">Short</option><option value="medium" selected>Medium</option><option value="long">Long</option>
+                    </select></div>
+                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Target AI</label>
+                    <select id="kw-target" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="general">General</option><option value="midjourney">Midjourney</option>
+                        <option value="dalle">DALL-E</option><option value="stable-diffusion">Stable Diffusion</option>
+                        <option value="chatgpt">ChatGPT</option><option value="claude">Claude</option>
+                    </select></div>
+            </div>
+            <button onclick="generateKeywordsPrompt()" class="w-full btn-gen py-2.5 rounded-xl text-sm">⚡ Build Keyword Prompt</button>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">KEYWORD OUTPUT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('keywords')" id="save-keywords" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('keywords')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('keywords')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="keywords-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Enter topic and keywords to build your prompt...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="keywords-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="keywords-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ UPLOAD TAB ═══ -->
+    <div id="prompt-upload" class="ptab">
+        <div class="glass rounded-2xl p-5 md:p-6">
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">📤 IMAGE ANALYZER</h3>
+            <div class="drop-zone rounded-xl p-8 text-center mb-5 cursor-pointer" onclick="document.getElementById('upload-file-input').click()">
+                <input type="file" id="upload-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                <svg class="w-10 h-10 text-kx-violet mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="font-display font-bold text-kx-white text-sm mb-0.5">Upload Image for Analysis</p>
+                <p class="font-body text-xs text-kx-muted">Click to browse · JPG, PNG, WebP</p>
+            </div>
+            <div id="upload-preview" class="hidden mb-5">
+                <div class="relative inline-block">
+                    <img id="uploaded-image" class="max-h-48 rounded-xl border border-kx-border" alt="Preview">
+                    <button onclick="clearUpload()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">✕</button>
+                </div>
+            </div>
+            <button onclick="analyzeImage()" id="analyze-btn" class="w-full btn-gen py-3 rounded-xl text-sm opacity-50 cursor-not-allowed" disabled>🔍 Analyze Image & Generate Prompt</button>
+        </div>
+        <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
+            <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
+                <span class="font-display text-sm text-kx-cyan tracking-wider">ANALYSIS OUTPUT</span>
+                <div class="flex gap-1.5">
+                    <button onclick="savePrompt('upload')" id="save-upload" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
+                    <button onclick="copyToClipboard('upload')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
+                    <button onclick="exportPrompt('upload')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
+                </div>
+            </div>
+            <div id="upload-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Upload an image and click Analyze...</div>
+            <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
+                <span>📝 <span id="upload-chars" class="text-kx-cyan">0</span> chars</span>
+                <span>📊 <span id="upload-words" class="text-kx-cyan">0</span> words</span>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
+
+<!-- ═══ SAVED MODAL ═══ -->
+<div id="saved-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="toggleSavedModal()"></div>
+    <div class="absolute bottom-0 left-0 right-0 md:top-1/2 md:left-1/2 md:bottom-auto md:right-auto md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[550px] md:rounded-2xl bg-kx-card border-t md:border border-kx-border p-5 max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="font-display text-xl text-kx-pink">⭐ Saved Prompts</h3>
+            <button onclick="toggleSavedModal()" class="w-7 h-7 rounded-full bg-kx-surface text-kx-text hover:text-white transition flex items-center justify-center text-sm">✕</button>
+        </div>
+        <div id="saved-list" class="space-y-2"></div>
+        <div class="mt-5 pt-4 border-t border-kx-border flex gap-2">
+            <button onclick="exportAllPrompts()" class="flex-1 btn-gen py-2.5 rounded-xl text-sm">📥 Export All</button>
+            <button onclick="clearAllSaved()" class="flex-1 btn-outline py-2.5 rounded-xl text-sm border-red-500/30 text-red-400 hover:bg-red-500/10">🗑️ Clear All</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- JAVASCRIPT - ALL FUNCTIONALITY                 -->
+<!-- ═══════════════════════════════════════════════ -->
+<script>
+// ==========================================
+// STATE
+// ==========================================
+let currentMainTab = 'converter';
+let currentPromptTab = 'music';
+let currentAIProvider = 'template';
+let savedPrompts = JSON.parse(localStorage.getItem('khmerix_saved') || '[]');
+let uploadedImage = null;
+let promptHistory = JSON.parse(localStorage.getItem('khmerix_prompt_history') || '[]');
+
+// ==========================================
+// TAB SWITCHING
+// ==========================================
+function switchMainTab(tabName) {
+    document.querySelectorAll('.main-section').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(tabName + '-section');
+    if (el) el.classList.add('active');
+
+    // Update nav
+    document.querySelectorAll('#nav-converter,#nav-prompt,#mob-nav-converter,#mob-nav-prompt').forEach(b => b.classList.remove('active'));
+    if (tabName === 'converter') {
+        document.getElementById('nav-converter')?.classList.add('active');
+        document.getElementById('mob-nav-converter')?.classList.add('active');
+    } else {
+        document.getElementById('nav-prompt')?.classList.add('active');
+        document.getElementById('mob-nav-prompt')?.classList.add('active');
+    }
+    currentMainTab = tabName;
+    localStorage.setItem('khmerix_main_tab', tabName);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchPromptTab(tabName) {
+    document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+    const el = document.getElementById('prompt-' + tabName);
+    if (el) el.classList.add('active');
+
+    document.querySelectorAll('[data-tab]').forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-tab') === tabName) b.classList.add('active');
+    });
+    currentPromptTab = tabName;
+    localStorage.setItem('khmerix_prompt_tab', tabName);
+}
+
+// ==========================================
+// TAG SELECTION (Genre, Style, etc.)
+// ==========================================
+function selectTag(groupClass, btn) {
+    // Find parent container and deactivate siblings
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// ==========================================
+// PROVIDER SELECTION
+// ==========================================
+function selectProvider(btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const text = btn.textContent.trim().toLowerCase();
+    if (text.includes('template')) currentAIProvider = 'template';
+    else if (text.includes('claude')) currentAIProvider = 'claude';
+    else if (text.includes('openai')) currentAIProvider = 'openai';
+    else if (text.includes('gemini')) currentAIProvider = 'gemini';
+    else if (text.includes('ollama')) currentAIProvider = 'ollama';
+}
+
+// ==========================================
+// INPUT HELPERS
+// ==========================================
+function setInput(id, value) {
+    const el = document.getElementById(id);
+    if (el) { el.value = value; updateLiveCounter(id); }
+}
+
+function addQuickWord(inputId, word) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    const current = el.value.trim();
+    el.value = current ? current + ' ' + word.trim() : word.trim();
+    updateLiveCounter(inputId);
+}
+
+function updateLiveCounter(inputId) {
+    const el = document.getElementById(inputId);
+    const counter = document.getElementById('counter-' + inputId);
+    if (el && counter) counter.textContent = el.value.length + ' chars';
+}
+
+// ==========================================
+// PROMPT GENERATORS
+// ==========================================
+function getActiveTagText(parentId) {
+    const container = document.getElementById(parentId);
+    if (!container) {
+        // Fallback: find active tag in the current prompt tab
+        const activeTab = document.getElementById('prompt-' + currentPromptTab);
+        if (activeTab) {
+            const active = activeTab.querySelector('.tag-btn.active');
+            return active ? active.textContent.trim() : '';
+        }
+    }
+    return '';
+}
+
+function generateMusicPrompt() {
+    const activeTab = document.getElementById('prompt-music');
+    const genre = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Dark Trap';
+    const mood = document.getElementById('music-mood')?.value || 'dark';
+    const energy = document.getElementById('music-energy')?.value || 'mid';
+    const bpm = document.getElementById('music-bpm')?.value || 'mid';
+    const keywords = document.getElementById('music-keywords')?.value || '';
+
+    let prompt = `Create a ${genre} beat with a ${mood} atmosphere. `;
+    prompt += `Energy level: ${energy}. Tempo: ${bpm} BPM range. `;
+    if (keywords) prompt += `Include elements: ${keywords}. `;
+    prompt += `Professional production quality, mixed and mastered for release.`;
+
+    setOutput('music', prompt);
+    showNotification('Beat prompt generated! ⚡');
+}
+
+function generateLyricsPrompt() {
+    const activeTab = document.getElementById('prompt-lyrics');
+    const genre = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Trap';
+    const topic = document.getElementById('lyrics-topic')?.value || 'life struggles';
+    const keywords = document.getElementById('lyrics-keywords')?.value || '';
+    const mood = document.getElementById('lyrics-mood')?.value || 'dark';
+    const structure = document.getElementById('lyrics-structure')?.value || 'verse-chorus';
+    const style = document.getElementById('lyrics-style')?.value || 'modern';
+
+    let prompt = `Write ${genre} rap lyrics about "${topic}". `;
+    prompt += `Mood: ${mood}. Structure: ${structure}. Style: ${style}. `;
+    if (keywords) prompt += `Include these keywords/references: ${keywords}. `;
+    prompt += `Make it authentic, emotionally resonant, with strong internal rhyme schemes and wordplay. `;
+    prompt += `Full song length with intro, verses, hooks, and outro.`;
+
+    setOutput('lyrics', prompt);
+    showNotification('Lyrics prompt generated! 🎤');
+}
+
+function generateImagePrompt() {
+    const activeTab = document.getElementById('prompt-image');
+    const style = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Photorealistic';
+    const subject = document.getElementById('image-subject')?.value || 'epic landscape';
+    const lighting = document.getElementById('image-lighting')?.value || 'dramatic';
+    const ratio = document.getElementById('image-ratio')?.value || '16:9';
+
+    let prompt = `${style} style image of ${subject}. `;
+    prompt += `Lighting: ${lighting}. Aspect ratio: ${ratio}. `;
+    prompt += `Ultra detailed, 8K resolution, professional quality, sharp focus, `;
+    prompt += `masterful composition, award-winning photography/art.`;
+
+    setOutput('image', prompt);
+    showNotification('Image prompt generated! 🎨');
+}
+
+function generateVideoPrompt() {
+    const scene = document.getElementById('video-scene')?.value || 'cinematic establishing shot';
+    const camera = document.getElementById('video-camera')?.value || 'static';
+    const mood = document.getElementById('video-mood')?.value || 'cinematic';
+    const duration = document.getElementById('video-duration')?.value || '10s';
+
+    let prompt = `${duration} video clip: ${scene}. `;
+    prompt += `Camera: ${camera}. Visual mood: ${mood}. `;
+    prompt += `High production value, professional color grading, smooth motion, `;
+    prompt += `cinematic quality with depth of field.`;
+
+    setOutput('video', prompt);
+    showNotification('Video prompt generated! 🎬');
+}
+
+function generateEducationPrompt() {
+    const activeTab = document.getElementById('prompt-education');
+    const type = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Lesson Plan';
+    const topic = document.getElementById('edu-topic')?.value || 'General topic';
+    const level = document.getElementById('edu-level')?.value || 'high';
+    const tone = document.getElementById('edu-tone')?.value || 'formal';
+    const length = document.getElementById('edu-length')?.value || 'standard';
+
+    let prompt = `Create a ${type} about "${topic}". `;
+    prompt += `Grade level: ${level}. Tone: ${tone}. Length: ${length}. `;
+    prompt += `Include clear learning objectives, engaging activities, `;
+    prompt += `assessment methods, and differentiated instruction strategies. `;
+    prompt += `Format with clear headings and structured sections.`;
+
+    setOutput('education', prompt);
+    showNotification('Education prompt generated! 📚');
+}
+
+function generateKeywordsPrompt() {
+    const topic = document.getElementById('kw-topic')?.value || 'AI music generation';
+    const keywords = document.getElementById('kw-keywords')?.value || '';
+    const style = document.getElementById('kw-style')?.value || 'detailed';
+    const length = document.getElementById('kw-length')?.value || 'medium';
+    const target = document.getElementById('kw-target')?.value || 'general';
+
+    let prompt = `Topic: ${topic}. `;
+    if (keywords) prompt += `Keywords: ${keywords}. `;
+    prompt += `Style: ${style}. Length: ${length}. Target AI: ${target}. `;
+    prompt += `Optimized for best results with structured, actionable output.`;
+
+    setOutput('keywords', prompt);
+    showNotification('Keyword prompt built! 🔑');
+}
+
+function generateAI(type) {
+    if (currentAIProvider === 'template') {
+        // Call the appropriate generator
+        switch(type) {
+            case 'music': generateMusicPrompt(); break;
+            case 'lyrics': generateLyricsPrompt(); break;
+            case 'image': generateImagePrompt(); break;
+            case 'video': generateVideoPrompt(); break;
+            case 'education': generateEducationPrompt(); break;
+        }
+        return;
+    }
+    if (currentAIProvider === 'claude') {
+        generateWithClaude(type);
+        return;
+    }
+    showNotification(`${currentAIProvider} API integration required`, 'error');
+}
+
+// ==========================================
+// CLAUDE AI INTEGRATION
+// ==========================================
+async function generateWithClaude(type) {
+    const outputEl = document.getElementById(type + '-output');
+    if (!outputEl) return;
+
+    // Build context from current UI selections
+    const context = gatherContext(type);
+    const systemPrompt = getSystemPrompt(type);
+    const userPrompt = buildUserPrompt(type, context);
+
+    // Show loading state
+    outputEl.innerHTML = '<span class="text-kx-violet animate-pulse flex items-center gap-2"><span class="spinner"></span> Claude is generating...</span>';
+    const btn = document.querySelector(`button[onclick="generateAI('${type}')"]`);
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating...'; }
+
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'claude-artifact-proxy',
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1000,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userPrompt }]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error?.message || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.content?.map(b => b.text || '').join('') || '';
+        outputEl.textContent = text.trim();
+        updateCharCount(type);
+        saveToHistory(type, text.trim());
+        showNotification('Claude generated! 🤖✨');
+    } catch (err) {
+        outputEl.textContent = 'Error: ' + err.message;
+        showNotification('Claude error: ' + err.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '✨ AI Enhanced'; }
+    }
+}
+
+function gatherContext(type) {
+    const ctx = {};
+    if (type === 'music') {
+        const tab = document.getElementById('prompt-music');
+        ctx.genre = tab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Dark Trap';
+        ctx.mood = document.getElementById('music-mood')?.value || 'dark';
+        ctx.energy = document.getElementById('music-energy')?.value || 'mid';
+        ctx.bpm = document.getElementById('music-bpm')?.value || 'mid';
+        ctx.keywords = document.getElementById('music-keywords')?.value || '';
+    } else if (type === 'lyrics') {
+        const tab = document.getElementById('prompt-lyrics');
+        ctx.genre = tab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Trap';
+        ctx.topic = document.getElementById('lyrics-topic')?.value || 'life struggles';
+        ctx.keywords = document.getElementById('lyrics-keywords')?.value || '';
+        ctx.mood = document.getElementById('lyrics-mood')?.value || 'dark';
+        ctx.structure = document.getElementById('lyrics-structure')?.value || 'verse-chorus';
+        ctx.style = document.getElementById('lyrics-style')?.value || 'modern';
+    } else if (type === 'image') {
+        const tab = document.getElementById('prompt-image');
+        ctx.style = tab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Photorealistic';
+        ctx.subject = document.getElementById('image-subject')?.value || 'epic landscape';
+        ctx.lighting = document.getElementById('image-lighting')?.value || 'dramatic';
+        ctx.ratio = document.getElementById('image-ratio')?.value || '16:9';
+    } else if (type === 'video') {
+        ctx.scene = document.getElementById('video-scene')?.value || 'cinematic shot';
+        ctx.camera = document.getElementById('video-camera')?.value || 'static';
+        ctx.mood = document.getElementById('video-mood')?.value || 'cinematic';
+        ctx.duration = document.getElementById('video-duration')?.value || '10s';
+    } else if (type === 'education') {
+        const tab = document.getElementById('prompt-education');
+        ctx.type = tab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Lesson Plan';
+        ctx.topic = document.getElementById('edu-topic')?.value || 'General topic';
+        ctx.level = document.getElementById('edu-level')?.value || 'high';
+        ctx.tone = document.getElementById('edu-tone')?.value || 'formal';
+        ctx.length = document.getElementById('edu-length')?.value || 'standard';
+    }
+    return ctx;
+}
+
+function getSystemPrompt(type) {
+    const prompts = {
+        music: `You are an expert music producer and AI prompt engineer specializing in crafting detailed beat prompts for AI music generators like Mureka, Suno, and Udio. You write vivid, technically precise prompts that produce outstanding results. Output ONLY the ready-to-use prompt text — no preamble, no labels, no explanation. Max 400 words.`,
+        lyrics: `You are a talented rap lyricist and ghostwriter. You write full, authentic rap songs with strong rhyme schemes, wordplay, and vivid storytelling. Output ONLY the complete lyrics — include [Intro], [Verse 1], [Hook/Chorus], [Verse 2], [Bridge/Outro] labels. No preamble or explanation. Aim for 80-120 lines.`,
+        image: `You are a world-class AI art director and prompt engineer for image generators like Midjourney, DALL-E, and Stable Diffusion. Craft highly detailed, evocative prompts that produce stunning visuals. Output ONLY the ready-to-use image prompt — no preamble. Max 200 words.`,
+        video: `You are a professional cinematographer and AI video prompt specialist for tools like Runway, Sora, and Pika. Write cinematic, detailed video generation prompts. Output ONLY the ready-to-use video prompt — no preamble. Max 150 words.`,
+        education: `You are an expert educator and instructional designer with deep experience in ESL/EFL teaching and curriculum development. Create thorough, well-structured educational content. Output ONLY the educational content — no preamble. Use clear headings and organized sections.`
+    };
+    return prompts[type] || 'You are a helpful AI assistant. Output only the requested content.';
+}
+
+function buildUserPrompt(type, ctx) {
+    if (type === 'music') {
+        return `Create an enhanced, detailed beat prompt for an AI music generator.
+
+Genre: ${ctx.genre}
+Mood: ${ctx.mood}
+Energy: ${ctx.energy}
+BPM: ${ctx.bpm}
+Keywords/Vibe: ${ctx.keywords || 'none specified'}
+
+Make it rich, specific, and optimized for Mureka. Include instrumentation details, production techniques, sonic textures, and emotional arc.`;
+    }
+    if (type === 'lyrics') {
+        return `Write a full rap song with these specifications:
+
+Genre/Style: ${ctx.genre}
+Topic/Theme: ${ctx.topic}
+Mood: ${ctx.mood}
+Song Structure: ${ctx.structure}
+Language Style: ${ctx.style}
+Keywords to include: ${ctx.keywords || 'none specified'}
+
+Write authentic, hard-hitting lyrics with strong internal rhymes, wordplay, and vivid imagery. Include [Intro], [Verse 1], [Hook], [Verse 2], [Hook], [Outro] sections.`;
+    }
+    if (type === 'image') {
+        return `Create a detailed image generation prompt with these specs:
+
+Style: ${ctx.style}
+Subject: ${ctx.subject}
+Lighting: ${ctx.lighting}
+Aspect Ratio: ${ctx.ratio}
+
+Make it highly detailed with specific artistic techniques, color palettes, compositional elements, and technical camera/rendering specs.`;
+    }
+    if (type === 'video') {
+        return `Create a detailed video generation prompt:
+
+Scene: ${ctx.scene}
+Camera Work: ${ctx.camera}
+Visual Mood: ${ctx.mood}
+Duration: ${ctx.duration}
+
+Include specific cinematography details, color grading, motion, and atmosphere.`;
+    }
+    if (type === 'education') {
+        return `Create educational content:
+
+Type: ${ctx.type}
+Topic: ${ctx.topic}
+Grade Level: ${ctx.level}
+Tone: ${ctx.tone}
+Length: ${ctx.length}
+
+Include learning objectives, key activities, assessment ideas, and structured sections.`;
+    }
+    return `Generate high-quality content for: ${JSON.stringify(ctx)}`;
+}
+
+// ==========================================
+// IMAGE ANALYSIS WITH CLAUDE VISION
+// ==========================================
+async function analyzeImage() {
+    if (!uploadedImage) { showNotification('Upload an image first!', 'error'); return; }
+
+    const outputEl = document.getElementById('upload-output');
+    const btn = document.getElementById('analyze-btn');
+    outputEl.innerHTML = '<span class="text-kx-violet animate-pulse flex items-center gap-2"><span class="spinner"></span> Claude is analyzing your image...</span>';
+    btn.disabled = true;
+    btn.textContent = '⏳ Analyzing...';
+
+    try {
+        // Convert data URL to base64
+        const base64 = uploadedImage.split(',')[1];
+        const mediaType = uploadedImage.split(';')[0].split(':')[1] || 'image/jpeg';
+
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'claude-artifact-proxy',
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1000,
+                system: `You are an expert AI art director and image prompt reverse-engineer. Analyze images and produce detailed, ready-to-use prompts for AI image generators (Midjourney, Stable Diffusion, DALL-E). Output ONLY the prompt — no preamble, no explanation. Include style, subject, lighting, mood, colors, composition, and technical specs.`,
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+                        { type: 'text', text: 'Analyze this image in detail and generate a comprehensive AI image generation prompt that would recreate this image. Include art style, subject details, lighting, color palette, mood, composition, and any relevant technical parameters.' }
+                    ]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error?.message || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.content?.map(b => b.text || '').join('') || '';
+        outputEl.textContent = text.trim();
+        updateCharCount('upload');
+        saveToHistory('upload', text.trim());
+        showNotification('Image analyzed by Claude! 🔍🤖');
+    } catch (err) {
+        outputEl.textContent = 'Error: ' + err.message;
+        showNotification('Analysis error: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Analyze Image & Generate Prompt';
+    }
+}
+
+// ==========================================
+// OUTPUT HELPERS
+// ==========================================
+function setOutput(type, text) {
+    const el = document.getElementById(type + '-output');
+    if (el) el.textContent = text;
+    updateCharCount(type);
+    saveToHistory(type, text);
+}
+
+function updateCharCount(type) {
+    const output = document.getElementById(type + '-output');
+    if (!output) return;
+    const text = output.textContent;
+    const chars = text.length;
+    const words = text.split(/\s+/).filter(w => w.length > 0).length;
+    const lines = text.split('\n').filter(l => l.trim().length > 0).length;
+
+    const charsEl = document.getElementById(type + '-chars');
+    const wordsEl = document.getElementById(type + '-words');
+    const linesEl = document.getElementById(type + '-lines');
+    if (charsEl) charsEl.textContent = chars;
+    if (wordsEl) wordsEl.textContent = words;
+    if (linesEl) linesEl.textContent = lines;
+}
+
+// ==========================================
+// RANDOMIZERS
+// ==========================================
+function randomizePrompt(type) {
+    switch(type) {
+        case 'music': {
+            const tab = document.getElementById('prompt-music');
+            const btns = tab?.querySelectorAll('.tag-btn');
+            if (btns?.length) {
+                btns.forEach(b => b.classList.remove('active'));
+                btns[Math.floor(Math.random() * btns.length)].classList.add('active');
+            }
+            const moods = ['dark','aggressive','hype','melancholic','mysterious','ethereal'];
+            document.getElementById('music-mood').value = moods[Math.floor(Math.random() * moods.length)];
+            const bpms = ['slow','mid','fast','dnb'];
+            document.getElementById('music-bpm').value = bpms[Math.floor(Math.random() * bpms.length)];
+            const kws = ['808','dark','atmospheric','heavy','bass','synth','reverb','glitch'];
+            document.getElementById('music-keywords').value = kws.sort(() => .5 - Math.random()).slice(0,3).join(' ');
+            updateLiveCounter('music-keywords');
+            showNotification('Randomized! 🎲'); break;
+        }
+        case 'lyrics': {
+            const tab = document.getElementById('prompt-lyrics');
+            const btns = tab?.querySelectorAll('.tag-btn');
+            if (btns?.length) { btns.forEach(b => b.classList.remove('active')); btns[Math.floor(Math.random() * btns.length)].classList.add('active'); }
+            const moods = ['dark','aggressive','romantic','confident','vulnerable'];
+            document.getElementById('lyrics-mood').value = moods[Math.floor(Math.random() * moods.length)];
+            showNotification('Randomized! 🎲'); break;
+        }
+        case 'image': {
+            const tab = document.getElementById('prompt-image');
+            const btns = tab?.querySelectorAll('.tag-btn');
+            if (btns?.length) { btns.forEach(b => b.classList.remove('active')); btns[Math.floor(Math.random() * btns.length)].classList.add('active'); }
+            const lights = ['natural','dramatic','neon','golden-hour','moody','cinematic'];
+            document.getElementById('image-lighting').value = lights[Math.floor(Math.random() * lights.length)];
+            showNotification('Randomized! 🎲'); break;
+        }
+        case 'video': {
+            const cams = ['static','handheld','drone','tracking','slow-motion'];
+            document.getElementById('video-camera').value = cams[Math.floor(Math.random() * cams.length)];
+            const moods = ['cinematic','dark','dreamy','documentary','music-video'];
+            document.getElementById('video-mood').value = moods[Math.floor(Math.random() * moods.length)];
+            showNotification('Randomized! 🎲'); break;
+        }
+        case 'education': {
+            const tab = document.getElementById('prompt-education');
+            const btns = tab?.querySelectorAll('.tag-btn');
+            if (btns?.length) { btns.forEach(b => b.classList.remove('active')); btns[Math.floor(Math.random() * btns.length)].classList.add('active'); }
+            showNotification('Randomized! 🎲'); break;
+        }
+    }
+}
+
+function generateVariation(num) {
+    showNotification(`Variation ${num} applied ✨`);
+}
+
+// ==========================================
+// TEMPLATES
+// ==========================================
+function applyTemplate(type, template) {
+    const templates = {
+        music: {
+            cinematic: { mood: 'mysterious', keywords: 'orchestral strings, epic drums, Hans Zimmer inspired' },
+            lofi: { mood: 'nostalgic', keywords: 'vinyl crackle, jazz chords, warm tape saturation, swing hi-hats' },
+            workout: { mood: 'hype', keywords: 'heavy bass, aggressive drops, high energy, motivational' },
+            'night-drive': { mood: 'melancholic', keywords: 'synthwave pads, retro bass, neon vibes, 80s atmosphere' },
+            meditation: { mood: 'ethereal', keywords: 'ambient pads, nature sounds, gentle, peaceful, 432Hz' },
+            horror: { mood: 'sinister', keywords: 'dissonant strings, eerie pads, reverse reverb, tension' },
+            space: { mood: 'mysterious', keywords: 'cosmic pads, arpeggiated synths, vast reverb, stellar' },
+            rainy: { mood: 'melancholic', keywords: 'rain ambience, soft piano, warm bass, cozy, lo-fi' }
+        },
+        video: {
+            'slow-motion': { camera: 'slow-motion' },
+            drone: { camera: 'drone' },
+            tracking: { camera: 'tracking' },
+            'whip-pan': { camera: 'static' }
+        }
+    };
+    const t = templates[type]?.[template];
+    if (!t) return;
+    if (t.mood) { const el = document.getElementById(type + '-mood'); if (el) el.value = t.mood; }
+    if (t.keywords) { const el = document.getElementById(type + '-keywords'); if (el) { el.value = t.keywords; updateLiveCounter(type + '-keywords'); } }
+    if (t.camera) { const el = document.getElementById('video-camera'); if (el) el.value = t.camera; }
+    showNotification(`Template applied: ${template} ✨`);
+}
+
+// ==========================================
+// CLIPBOARD, SPEECH, EXPORT
+// ==========================================
+function copyToClipboard(type) {
+    const el = document.getElementById(type + '-output');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => showNotification('Copied to clipboard! 📋'));
+}
+
+function speakText(type) {
+    const el = document.getElementById(type + '-output');
+    if (!el) return;
+    const u = new SpeechSynthesisUtterance(el.textContent);
+    u.rate = 0.9;
+    speechSynthesis.speak(u);
+}
+
+function exportPrompt(type) {
+    const el = document.getElementById(type + '-output');
+    if (!el) return;
+    const blob = new Blob([el.textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `khmerix-${type}-prompt.txt`; a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Exported! 📤');
+}
+
+// ==========================================
+// VOICE INPUT
+// ==========================================
+function startVoiceInput(inputId) {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showNotification('Voice input not supported', 'error'); return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    const btn = document.querySelector(`button[onclick="startVoiceInput('${inputId}')"]`);
+    recognition.onstart = () => { if (btn) btn.classList.add('recording'); };
+    recognition.onend = () => { if (btn) btn.classList.remove('recording'); };
+    recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        const input = document.getElementById(inputId);
+        if (input) { input.value = transcript; updateLiveCounter(inputId); }
+    };
+    recognition.start();
+}
+
+// ==========================================
+// SAVED PROMPTS
+// ==========================================
+function savePrompt(type) {
+    const el = document.getElementById(type + '-output');
+    if (!el || el.textContent.includes('Select') || el.textContent.includes('Enter') || el.textContent.includes('Configure') || el.textContent.includes('Upload')) {
+        showNotification('Generate a prompt first!', 'error'); return;
+    }
+    const prompt = { type, content: el.textContent, date: new Date().toLocaleString(), id: Date.now() };
+    savedPrompts.unshift(prompt);
+    if (savedPrompts.length > 50) savedPrompts = savedPrompts.slice(0, 50);
+    localStorage.setItem('khmerix_saved', JSON.stringify(savedPrompts));
+    updateSavedCount();
+    showNotification('Prompt saved! ⭐');
+    const btn = document.getElementById('save-' + type);
+    if (btn) { btn.textContent = '✓'; setTimeout(() => btn.textContent = '⭐', 1500); }
+}
+
+function saveToHistory(type, content) {
+    try {
+        promptHistory.unshift({ type, content, date: new Date().toLocaleString() });
+        if (promptHistory.length > 20) promptHistory.pop();
+        localStorage.setItem('khmerix_prompt_history', JSON.stringify(promptHistory));
+    } catch(e) {}
+}
+
+function toggleSavedModal() {
+    const modal = document.getElementById('saved-modal');
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) renderSavedList();
+}
+
+function renderSavedList() {
+    const list = document.getElementById('saved-list');
+    if (savedPrompts.length === 0) {
+        list.innerHTML = '<p class="text-kx-muted text-center py-6 text-sm">No saved prompts yet...</p>';
+        return;
+    }
+    list.innerHTML = savedPrompts.map(p => `
+        <div class="saved-card rounded-lg p-3">
+            <div class="flex justify-between items-start mb-1">
+                <span class="text-[10px] text-kx-cyan uppercase tracking-wider font-mono">${p.type}</span>
+                <div class="flex gap-2">
+                    <button onclick="loadSavedPrompt(${p.id})" class="text-kx-cyan hover:text-white text-xs transition">Load</button>
+                    <button onclick="deleteSavedPrompt(${p.id})" class="text-red-400 hover:text-red-300 text-xs transition">Delete</button>
+                </div>
+            </div>
+            <p class="text-xs text-kx-text line-clamp-2">${p.content}</p>
+            <p class="text-[10px] text-kx-muted mt-1">${p.date}</p>
+        </div>
+    `).join('');
+}
+
+function loadSavedPrompt(id) {
+    const prompt = savedPrompts.find(p => p.id === id);
+    if (!prompt) return;
+    switchMainTab('prompt-lab');
+    setTimeout(() => {
+        switchPromptTab(prompt.type);
+        const el = document.getElementById(prompt.type + '-output');
+        if (el) { el.textContent = prompt.content; updateCharCount(prompt.type); }
+    }, 150);
+    toggleSavedModal();
+    showNotification('Prompt loaded!');
+}
+
+function deleteSavedPrompt(id) {
+    savedPrompts = savedPrompts.filter(p => p.id !== id);
+    localStorage.setItem('khmerix_saved', JSON.stringify(savedPrompts));
+    updateSavedCount();
+    renderSavedList();
+    showNotification('Deleted');
+}
+
+function updateSavedCount() {
+    const c = savedPrompts.length;
+    const el1 = document.getElementById('saved-count');
+    const el2 = document.getElementById('saved-count-mobile');
+    if (el1) el1.textContent = c;
+    if (el2) el2.textContent = c;
+}
+
+function exportAllPrompts() {
+    if (!savedPrompts.length) { showNotification('No prompts to export', 'error'); return; }
+    const blob = new Blob([JSON.stringify(savedPrompts, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `khmerix-saved-${new Date().toISOString().split('T')[0]}.json`; a.click();
+    URL.revokeObjectURL(url);
+    showNotification('All exported! 📥');
+}
+
+function clearAllSaved() {
+    if (!confirm('Delete all saved prompts?')) return;
+    savedPrompts = [];
+    localStorage.setItem('khmerix_saved', JSON.stringify(savedPrompts));
+    updateSavedCount();
+    renderSavedList();
+    showNotification('All cleared');
+}
+
+// ==========================================
+// IMAGE UPLOAD
+// ==========================================
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith('image/')) { showNotification('Please upload an image', 'error'); return; }
+    uploadedImage = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('uploaded-image').src = e.target.result;
+        document.getElementById('upload-preview').classList.remove('hidden');
+        const btn = document.getElementById('analyze-btn');
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearUpload() {
+    uploadedImage = null;
+    document.getElementById('upload-file-input').value = '';
+    document.getElementById('upload-preview').classList.add('hidden');
+    const btn = document.getElementById('analyze-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+}
+
+// ==========================================
+// NOTIFICATION
+// ==========================================
+function showNotification(message, type = 'success') {
+    const notif = document.createElement('div');
+    notif.className = `notif ${type}`;
+    notif.textContent = message;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.classList.add('show'), 50);
+    setTimeout(() => {
+        notif.classList.remove('show');
+        setTimeout(() => notif.remove(), 300);
+    }, 2500);
+}
+
+// ==========================================
+// AUDIO CONVERTER - WEB AUDIO API
+// ==========================================
+let audioContext = null;
+let audioBuffer = null;
+let audioSource = null;
+let isPlaying = false;
+let startTime = 0;
+let pauseTime = 0;
+let animationId = null;
+let currentFile = null;
+
+// Effect Nodes
+let masterGain = null;
+let analyser = null;
+let eqLow = null, eqMid = null, eqHigh = null;
+let compressorNode = null;
+let convolver = null, reverbGain = null, dryGain = null;
+let waveshaper = null;
+let stereoPanner = null;
+
+let effectsState = {
+    eq: { enabled: true, low: 0, mid: 0, high: 0 },
+    compressor: { enabled: false, threshold: -24, ratio: 4 },
+    reverb: { enabled: false, size: 50, mix: 30, damping: 50 },
+    distortion: { enabled: false, amount: 0, tone: 50 },
+    stereo: { enabled: true, width: 100 }
+};
+
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        createEffectNodes();
+    }
+    if (audioContext.state === 'suspended') audioContext.resume();
+}
+
+function createEffectNodes() {
+    if (!audioContext) return;
+    masterGain = audioContext.createGain();
+    masterGain.gain.value = 1.0;
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.8;
+
+    eqLow = audioContext.createBiquadFilter();
+    eqLow.type = 'lowshelf'; eqLow.frequency.value = 320; eqLow.gain.value = 0;
+    eqMid = audioContext.createBiquadFilter();
+    eqMid.type = 'peaking'; eqMid.frequency.value = 1000; eqMid.Q.value = 1; eqMid.gain.value = 0;
+    eqHigh = audioContext.createBiquadFilter();
+    eqHigh.type = 'highshelf'; eqHigh.frequency.value = 3200; eqHigh.gain.value = 0;
+
+    compressorNode = audioContext.createDynamicsCompressor();
+    compressorNode.threshold.value = -24; compressorNode.knee.value = 30;
+    compressorNode.ratio.value = 4; compressorNode.attack.value = 0.003; compressorNode.release.value = 0.25;
+
+    convolver = audioContext.createConvolver();
+    convolver.buffer = createImpulseResponse(2.0, 2.0);
+    reverbGain = audioContext.createGain(); reverbGain.gain.value = 0.3;
+    dryGain = audioContext.createGain(); dryGain.gain.value = 0.7;
+
+    waveshaper = audioContext.createWaveShaper();
+    waveshaper.curve = makeDistortionCurve(0);
+    waveshaper.oversample = '4x';
+
+    stereoPanner = audioContext.createStereoPanner();
+    stereoPanner.pan.value = 0;
+}
+
+function createImpulseResponse(duration, decay) {
+    const sr = audioContext.sampleRate;
+    const len = sr * duration;
+    const impulse = audioContext.createBuffer(2, len, sr);
+    for (let ch = 0; ch < 2; ch++) {
+        const data = impulse.getChannelData(ch);
+        for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return impulse;
+}
+
+function makeDistortionCurve(amount) {
+    const k = amount || 0;
+    const samples = 44100;
+    const curve = new Float32Array(samples);
+    const deg = Math.PI / 180;
+    for (let i = 0; i < samples; i++) {
+        const x = i * 2 / samples - 1;
+        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
+}
+
+// Toggle Effect UI
+function toggleEffectUI(name) {
+    const toggle = document.getElementById(name === 'compressor' ? 'compToggle' :
+                   name === 'reverb' ? 'reverbToggle' :
+                   name === 'distortion' ? 'distToggle' :
+                   name === 'stereo' ? 'stereoToggle' : 'eqToggle');
+    if (!toggle) return;
+    const isOn = toggle.classList.toggle('on');
+    effectsState[name].enabled = isOn;
+
+    // Update indicator
+    const indMap = { eq: 'eq-indicator', compressor: 'comp-indicator', reverb: 'reverb-indicator', distortion: 'dist-indicator', stereo: 'stereo-indicator' };
+    const ind = document.getElementById(indMap[name]);
+    if (ind) ind.className = `w-1.5 h-1.5 rounded-full ${isOn ? 'bg-kx-pink' : 'bg-kx-muted'}`;
+
+    if (isPlaying) { pauseAudio(); playAudio(); }
+}
+
+// File Upload
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processAudioFile(e.target.files[0]); });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) processAudioFile(e.dataTransfer.files[0]);
+    });
+}
+
+function processAudioFile(file) {
+    if (!file.type.startsWith('audio/')) { showNotification('Please upload an audio file', 'error'); return; }
+    if (file.size > 50 * 1024 * 1024) { showNotification('Max 50MB', 'error'); return; }
+    currentFile = file;
+    document.getElementById('audioFilename').textContent = file.name;
+    document.getElementById('audioInfoArea').classList.remove('hidden');
+    document.getElementById('effectsArea').classList.remove('hidden');
+    document.getElementById('exportArea').classList.remove('hidden');
+    document.getElementById('instructions').classList.add('hidden');
+    initAudioContext();
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        audioContext.decodeAudioData(e.target.result,
+            (buffer) => {
+                audioBuffer = buffer;
+                document.getElementById('audioSpecs').textContent =
+                    `${buffer.sampleRate/1000}kHz | ${buffer.numberOfChannels === 1 ? 'Mono' : 'Stereo'} | ${formatTime(buffer.duration)}`;
+                document.getElementById('totalTime').textContent = formatTime(buffer.duration);
+                drawWaveform(buffer);
+                showNotification('Audio loaded! 🎵');
+            },
+            () => showNotification('Error decoding audio', 'error')
+        );
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function formatTime(s) {
+    if (!s || isNaN(s)) return '0:00';
+    return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+}
+
+function drawWaveform(buffer) {
+    const canvas = document.getElementById('waveformCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+    const h = canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1);
+    const data = buffer.getChannelData(0);
+    const step = Math.ceil(data.length / w);
+    const amp = h / 2;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, amp); ctx.lineTo(w, amp); ctx.stroke();
+
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = Math.max(1, window.devicePixelRatio || 1);
+    ctx.beginPath();
+    for (let i = 0; i < w; i++) {
+        let min = 1, max = -1;
+        for (let j = 0; j < step; j++) {
+            const d = data[(i * step) + j];
+            if (d < min) min = d;
+            if (d > max) max = d;
+        }
+        ctx.moveTo(i, (1 + min) * amp);
+        ctx.lineTo(i, (1 + max) * amp);
+    }
+    ctx.stroke();
+
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(244,63,94,0.15)');
+    grad.addColorStop(0.5, 'rgba(139,92,246,0.05)');
+    grad.addColorStop(1, 'rgba(34,211,238,0.15)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+}
+
+function togglePlayback() {
+    if (!audioBuffer) { showNotification('No audio loaded', 'error'); return; }
+    isPlaying ? pauseAudio() : playAudio();
+}
+
+function playAudio() {
+    if (!audioContext) initAudioContext();
+    if (audioSource) { try { audioSource.stop(); } catch(e) {} }
+
+    audioSource = audioContext.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    connectSourceToChain(audioSource);
+    audioSource.start(0, pauseTime);
+    startTime = audioContext.currentTime - pauseTime;
+    isPlaying = true;
+    audioSource.onended = () => { if (isPlaying) resetAudio(); };
+
+    document.getElementById('playIcon').textContent = '⏸';
+    document.getElementById('playText').textContent = 'PAUSE';
+    visualize();
+    updateTimeDisplay();
+}
+
+function pauseAudio() {
+    if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
+    pauseTime = audioContext.currentTime - startTime;
+    isPlaying = false;
+    document.getElementById('playIcon').textContent = '▶';
+    document.getElementById('playText').textContent = 'PLAY';
+    if (animationId) cancelAnimationFrame(animationId);
+}
+
+function resetAudio() {
+    if (isPlaying) pauseAudio();
+    pauseTime = 0;
+    document.getElementById('currentTime').textContent = '0:00';
+    document.getElementById('playbackIndicator').style.left = '0%';
+}
+
+function connectSourceToChain(source) {
+    if (!audioContext) return;
+    let node = source;
+    if (effectsState.eq.enabled) {
+        node.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); node = eqHigh;
+    }
+    if (effectsState.compressor.enabled) { node.connect(compressorNode); node = compressorNode; }
+    if (effectsState.distortion.enabled && effectsState.distortion.amount > 0) {
+        const dg = audioContext.createGain(); dg.gain.value = effectsState.distortion.amount / 100;
+        const bg = audioContext.createGain(); bg.gain.value = 1 - effectsState.distortion.amount / 100;
+        const mg = audioContext.createGain();
+        node.connect(dg); dg.connect(waveshaper); waveshaper.connect(mg);
+        node.connect(bg); bg.connect(mg); node = mg;
+    }
+    if (effectsState.reverb.enabled) {
+        const ri = audioContext.createGain(); ri.gain.value = 1; node.connect(ri);
+        const dg = audioContext.createGain(); dg.gain.value = 1 - effectsState.reverb.mix / 100;
+        const wg = audioContext.createGain(); wg.gain.value = effectsState.reverb.mix / 100;
+        ri.connect(dg); ri.connect(convolver); convolver.connect(wg);
+        const mg = audioContext.createGain(); dg.connect(mg); wg.connect(mg); node = mg;
+    }
+    if (effectsState.stereo.enabled) {
+        stereoPanner.pan.value = (effectsState.stereo.width - 100) / 100;
+        node.connect(stereoPanner); node = stereoPanner;
+    }
+    node.connect(masterGain);
+    masterGain.connect(analyser);
+    analyser.connect(audioContext.destination);
+}
+
+function updateTimeDisplay() {
+    if (!isPlaying) return;
+    const cur = audioContext.currentTime - startTime;
+    const dur = audioBuffer.duration;
+    if (cur >= dur) { resetAudio(); return; }
+    document.getElementById('currentTime').textContent = formatTime(cur);
+    document.getElementById('playbackIndicator').style.left = `${(cur / dur) * 100}%`;
+    requestAnimationFrame(updateTimeDisplay);
+}
+
+function visualize() {
+    if (!analyser) return;
+    const buf = analyser.frequencyBinCount;
+    const data = new Uint8Array(buf);
+    const draw = () => {
+        if (!isPlaying) return;
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (let i = 0; i < buf; i++) sum += data[i];
+        const avg = sum / buf;
+        const level = Math.max(5, (avg / 255) * 100);
+        document.getElementById('meterL').style.height = `${level}%`;
+        document.getElementById('meterR').style.height = `${level * 0.9}%`;
+        const db = Math.round(20 * Math.log10(avg / 255));
+        document.getElementById('outputLevel').textContent = `${isFinite(db) ? db : '-∞'}dB`;
+    };
+    draw();
+}
+
+// Effect Update Functions
+function updateEQ(band, value) {
+    value = parseFloat(value);
+    effectsState.eq[band] = value;
+    document.getElementById(band + 'GainVal').textContent = (value > 0 ? '+' : '') + value + 'dB';
+    if (!audioContext) return;
+    if (band === 'low' && eqLow) eqLow.gain.value = value;
+    if (band === 'mid' && eqMid) eqMid.gain.value = value;
+    if (band === 'high' && eqHigh) eqHigh.gain.value = value;
+}
+
+function updateCompressor(param, value) {
+    value = parseFloat(value);
+    effectsState.compressor[param] = value;
+    if (param === 'threshold') {
+        if (compressorNode) compressorNode.threshold.value = value;
+        document.getElementById('thresholdVal').textContent = value + 'dB';
+    } else if (param === 'ratio') {
+        if (compressorNode) compressorNode.ratio.value = value;
+        document.getElementById('ratioVal').textContent = value + ':1';
+    }
+    if (compressorNode) {
+        const r = compressorNode.reduction;
+        document.getElementById('gainReduction').style.width = Math.min(100, Math.abs(r) * 3) + '%';
+    }
+}
+
+function updateReverb(param, value) {
+    value = parseFloat(value);
+    effectsState.reverb[param] = value;
+    if (param === 'size') {
+        document.getElementById('roomSizeVal').textContent = value + '%';
+        if (window._rvTimeout) clearTimeout(window._rvTimeout);
+        window._rvTimeout = setTimeout(() => {
+            if (audioContext && convolver) convolver.buffer = createImpulseResponse(value / 25, 2.0);
+        }, 150);
+    } else if (param === 'mix') {
+        document.getElementById('reverbMixVal').textContent = value + '%';
+    } else if (param === 'damping') {
+        document.getElementById('dampingVal').textContent = value + '%';
+    }
+}
+
+function updateDistortion(param, value) {
+    value = parseFloat(value);
+    effectsState.distortion[param] = value;
+    if (param === 'amount') {
+        document.getElementById('distAmountVal').textContent = value + '%';
+        if (waveshaper) waveshaper.curve = makeDistortionCurve(value);
+    } else if (param === 'tone') {
+        document.getElementById('distToneVal').textContent = value + '%';
+    }
+}
+
+function updateStereo(param, value) {
+    value = parseFloat(value);
+    effectsState.stereo[param] = value;
+    document.getElementById('widthVal').textContent = value + '%';
+    if (stereoPanner) stereoPanner.pan.value = (value - 100) / 100;
+}
+
+function updateOutputGain(value) {
+    value = parseFloat(value);
+    document.getElementById('outputGainVal').textContent = (value > 0 ? '+' : '') + value + 'dB';
+    if (masterGain) masterGain.gain.value = Math.pow(10, value / 20);
+}
+
+// Export / Process
+async function processAndExport() {
+    if (!audioBuffer) { showNotification('No audio loaded', 'error'); return; }
+    const format = document.getElementById('exportFormat').value;
+    const quality = document.getElementById('exportQuality').value;
+
+    document.getElementById('processingStatus').classList.remove('hidden');
+    updateProgress(0, 'Setting up...');
+
+    try {
+        const sr = quality === 'master' ? 96000 : quality === 'high' ? 48000 : 44100;
+        const offCtx = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.duration * sr, sr);
+        updateProgress(10, 'Building effect chain...');
+
+        const src = offCtx.createBufferSource();
+        src.buffer = audioBuffer;
+        let node = src;
+
+        if (effectsState.eq.enabled) {
+            const lo = offCtx.createBiquadFilter(); lo.type = 'lowshelf'; lo.frequency.value = 320; lo.gain.value = effectsState.eq.low;
+            const mi = offCtx.createBiquadFilter(); mi.type = 'peaking'; mi.frequency.value = 1000; mi.Q.value = 1; mi.gain.value = effectsState.eq.mid;
+            const hi = offCtx.createBiquadFilter(); hi.type = 'highshelf'; hi.frequency.value = 3200; hi.gain.value = effectsState.eq.high;
+            node.connect(lo); lo.connect(mi); mi.connect(hi); node = hi;
+        }
+        if (effectsState.compressor.enabled) {
+            const c = offCtx.createDynamicsCompressor();
+            c.threshold.value = effectsState.compressor.threshold; c.ratio.value = effectsState.compressor.ratio;
+            node.connect(c); node = c;
+        }
+        if (effectsState.distortion.enabled && effectsState.distortion.amount > 0) {
+            const ws = offCtx.createWaveShaper(); ws.curve = makeDistortionCurve(effectsState.distortion.amount); ws.oversample = '4x';
+            const dg = offCtx.createGain(); dg.gain.value = effectsState.distortion.amount / 100;
+            node.connect(dg); dg.connect(ws); node = ws;
+        }
+        if (effectsState.reverb.enabled) {
+            const cv = offCtx.createConvolver();
+            const irLen = offCtx.sampleRate * (effectsState.reverb.size / 25);
+            const ir = offCtx.createBuffer(2, irLen, offCtx.sampleRate);
+            for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < irLen; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 2); }
+            cv.buffer = ir;
+            const dg = offCtx.createGain(); dg.gain.value = 1 - effectsState.reverb.mix / 100;
+            const wg = offCtx.createGain(); wg.gain.value = effectsState.reverb.mix / 100;
+            const mg = offCtx.createGain();
+            node.connect(dg); dg.connect(mg);
+            node.connect(cv); cv.connect(wg); wg.connect(mg);
+            node = mg;
+        }
+        if (effectsState.stereo.enabled) {
+            const p = offCtx.createStereoPanner();
+            p.pan.value = (effectsState.stereo.width - 100) / 100;
+            node.connect(p); node = p;
+        }
+        const mg = offCtx.createGain();
+        mg.gain.value = Math.pow(10, parseFloat(document.getElementById('outputGain').value) / 20);
+        node.connect(mg); mg.connect(offCtx.destination);
+
+        updateProgress(30, 'Rendering audio...');
+        src.start(0);
+        const rendered = await offCtx.startRendering();
+        updateProgress(70, 'Encoding WAV...');
+
+        const wav = bufferToWave(rendered, rendered.length);
+        updateProgress(90, 'Finalizing...');
+
+        const url = URL.createObjectURL(wav);
+        const a = document.createElement('a');
+        a.href = url; a.download = currentFile.name.replace(/\.[^/.]+$/, '') + '_processed.wav';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        updateProgress(100, 'Done!');
+        showNotification('Audio exported! 🎵');
+        setTimeout(() => document.getElementById('processingStatus').classList.add('hidden'), 2000);
+    } catch(err) {
+        showNotification('Export failed: ' + err.message, 'error');
+        document.getElementById('processingStatus').classList.add('hidden');
+    }
+}
+
+function updateProgress(pct, detail) {
+    document.getElementById('processPercent').textContent = pct + '%';
+    document.getElementById('processBar').style.width = pct + '%';
+    document.getElementById('processDetail').textContent = detail;
+}
+
+function bufferToWave(buf, len) {
+    const ch = buf.numberOfChannels;
+    const length = len * ch * 2 + 44;
+    const buffer = new ArrayBuffer(length);
+    const view = new DataView(buffer);
+    const channels = [];
+    let offset = 0, pos = 0;
+
+    function w16(d) { view.setUint16(pos, d, true); pos += 2; }
+    function w32(d) { view.setUint32(pos, d, true); pos += 4; }
+
+    w32(0x46464952); w32(length - 8); w32(0x45564157);
+    w32(0x20746d66); w32(16); w16(1); w16(ch);
+    w32(buf.sampleRate); w32(buf.sampleRate * 2 * ch); w16(ch * 2); w16(16);
+    w32(0x61746164); w32(length - pos - 4);
+
+    for (let i = 0; i < ch; i++) channels.push(buf.getChannelData(i));
+    while (pos < len) {
+        for (let i = 0; i < ch; i++) {
+            let s = Math.max(-1, Math.min(1, channels[i][pos]));
+            s = (0.5 + s < 0 ? s * 32768 : s * 32767) | 0;
+            view.setInt16(44 + offset, s, true);
+            offset += 2;
+        }
+        pos++;
+    }
+    return new Blob([buffer], { type: 'audio/wav' });
+}
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const savedMainTab = localStorage.getItem('khmerix_main_tab');
+    const savedPromptTab = localStorage.getItem('khmerix_prompt_tab');
+    if (savedMainTab) switchMainTab(savedMainTab);
+    if (savedPromptTab) setTimeout(() => switchPromptTab(savedPromptTab), 100);
+    updateSavedCount();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            if (currentMainTab === 'prompt-lab') savePrompt(currentPromptTab);
+        }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            if (currentMainTab === 'prompt-lab') copyToClipboard(currentPromptTab);
+        }
+    });
+
+    // Prevent form submit on Enter
+    document.querySelectorAll('input[type="text"]').forEach(el => {
+        el.addEventListener('keypress', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+    });
+
+    showNotification('KHMERIX Studio ready! 🎵');
+});
+
+
+// ═══════════════ SPLASH SCREEN ═══════════════
+setTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash) {
+        splash.classList.add('hide');
+        setTimeout(() => splash.remove(), 600);
+    }
+}, 2200);
+
+// ═══════════════ THEME TOGGLE ═══════════════
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.classList.contains('dark');
+    if (isDark) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        document.getElementById('themeToggle').textContent = '☀️';
+        const mob = document.getElementById('themeToggleMobile');
+        if (mob) mob.textContent = '☀️';
+        localStorage.setItem('kx-theme', 'light');
+    } else {
+        html.classList.remove('light');
+        html.classList.add('dark');
+        document.getElementById('themeToggle').textContent = '🌙';
+        const mob = document.getElementById('themeToggleMobile');
+        if (mob) mob.textContent = '🌙';
+        localStorage.setItem('kx-theme', 'dark');
+    }
+}
+// Restore saved theme
+(function() {
+    const saved = localStorage.getItem('kx-theme');
+    if (saved === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        setTimeout(() => {
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.textContent = '☀️';
+            const mob = document.getElementById('themeToggleMobile');
+            if (mob) mob.textContent = '☀️';
+        }, 100);
+    }
+})();
+
+// ═══════════════ KEYBOARD SHORTCUTS ═══════════════
+document.addEventListener('keydown', function(e) {
+    // Don't trigger when typing in inputs
+    const tag = e.target.tagName.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+    // Space - toggle playback
+    if (e.code === 'Space') {
+        e.preventDefault();
+        if (typeof togglePlayback === 'function' && document.getElementById('audioInfoArea') && !document.getElementById('audioInfoArea').classList.contains('hidden')) {
+            togglePlayback();
+        }
+    }
+
+    // Ctrl+S - save current prompt
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        // Find the active prompt tab and save it
+        const activeTab = document.querySelector('.ptab.active');
+        if (activeTab) {
+            const tabId = activeTab.id.replace('prompt-', '');
+            if (typeof savePrompt === 'function') savePrompt(tabId);
+        }
+    }
+
+    // Ctrl+C (no selection) - copy current prompt
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !window.getSelection().toString()) {
+        const activeTab = document.querySelector('.ptab.active');
+        if (activeTab) {
+            const tabId = activeTab.id.replace('prompt-', '');
+            if (typeof copyToClipboard === 'function') copyToClipboard(tabId);
+        }
+    }
+
+    // Number keys 1-7 for prompt lab tabs (when in prompt lab)
+    const promptLabActive = document.getElementById('prompt-lab-section');
+    if (promptLabActive && promptLabActive.classList.contains('active')) {
+        const tabMap = { '1': 'music', '2': 'lyrics', '3': 'image', '4': 'video', '5': 'education', '6': 'keywords', '7': 'upload' };
+        if (tabMap[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            if (typeof switchPromptTab === 'function') switchPromptTab(tabMap[e.key]);
+        }
+    }
+
+    // T - toggle theme
+    if (e.key === 't' && !e.ctrlKey && !e.metaKey) {
+        toggleTheme();
+    }
+});
+
+// ═══════════════ DRAG-TO-REORDER EFFECTS ═══════════════
+(function() {
+    let dragSrc = null;
+
+    function addDragHandles() {
+        document.querySelectorAll('.effect-panel').forEach(panel => {
+            // Add a drag handle indicator at the top
+            const firstChild = panel.querySelector('.flex.justify-between');
+            if (firstChild && !firstChild.querySelector('.drag-handle')) {
+                const handle = document.createElement('span');
+                handle.className = 'drag-handle mr-2';
+                handle.textContent = '⋮⋮';
+                handle.title = 'Drag to reorder';
+                firstChild.prepend(handle);
+            }
+        });
+    }
+
+    function initDragReorder() {
+        const grid = document.querySelector('#effectsArea .grid');
+        if (!grid) return;
+
+        grid.querySelectorAll('.effect-panel').forEach(panel => {
+            panel.addEventListener('dragstart', function(e) {
+                dragSrc = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.outerHTML);
+            });
+
+            panel.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('drag-over');
+                return false;
+            });
+
+            panel.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+
+            panel.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                if (dragSrc !== this) {
+                    // Swap positions
+                    const parent = this.parentNode;
+                    const srcIndex = Array.from(parent.children).indexOf(dragSrc);
+                    const destIndex = Array.from(parent.children).indexOf(this);
+                    if (srcIndex < destIndex) {
+                        parent.insertBefore(dragSrc, this.nextSibling);
+                    } else {
+                        parent.insertBefore(dragSrc, this);
+                    }
+                    showNotification('Signal chain reordered ⚡');
+                }
+                return false;
+            });
+
+            panel.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                document.querySelectorAll('.effect-panel').forEach(p => p.classList.remove('drag-over'));
+            });
+        });
+    }
+
+    // Initialize when effects become visible
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.target.id === 'effectsArea' && !mutation.target.classList.contains('hidden')) {
+                setTimeout(() => {
+                    addDragHandles();
+                    initDragReorder();
+                }, 100);
+            }
+        });
+    });
+
+    const effectsArea = document.getElementById('effectsArea');
+    if (effectsArea) {
+        observer.observe(effectsArea, { attributes: true, attributeFilter: ['class'] });
+        // Also init if already visible
+        if (!effectsArea.classList.contains('hidden')) {
+            setTimeout(() => {
+                addDragHandles();
+                initDragReorder();
+            }, 100);
+        }
+    }
+})();
+
+</script>
+
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="kx-footer relative z-10 mt-0 py-10 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="footer-divider mb-8"></div>
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+            <!-- Branding -->
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="relative w-10 h-10">
+                        <div class="absolute inset-0 bg-gradient-to-br from-kx-pink to-kx-violet rounded-lg blur-sm opacity-40"></div>
+                        <div class="relative w-10 h-10 bg-kx-bg rounded-lg flex items-center justify-center border border-kx-pink/30">
+                            <span class="font-display font-extrabold text-transparent text-lg bg-clip-text bg-gradient-to-br from-kx-pink to-kx-violet">K</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-display font-extrabold text-lg tracking-wider text-kx-white">KHMERIX</span>
+                        <p class="font-body text-[10px] text-kx-muted tracking-[.15em] uppercase">Studio Suite</p>
+                    </div>
+                </div>
+                <p class="font-body text-sm text-kx-text leading-relaxed">Professional audio processing & AI-powered prompt generation. Built with passion in Cambodia.</p>
+            </div>
+            <!-- Quick Links -->
+            <div>
+                <h4 class="font-display font-bold text-sm text-kx-white mb-3 tracking-wider uppercase">Studio</h4>
+                <ul class="space-y-2 font-body text-sm">
+                    <li><a href="#" onclick="switchMainTab('converter');return false;">Audio Converter</a></li>
+                    <li><a href="#" onclick="switchMainTab('prompt-lab');return false;">Prompt Lab</a></li>
+                    <li><a href="#" onclick="toggleSavedModal();return false;">Saved Prompts</a></li>
+                </ul>
+            </div>
+            <!-- Social & Connect -->
+            <div>
+                <h4 class="font-display font-bold text-sm text-kx-white mb-3 tracking-wider uppercase">Connect</h4>
+                <div class="flex gap-3 mb-4">
+                    <a href="#" class="w-9 h-9 rounded-lg bg-kx-surface border border-kx-border flex items-center justify-center hover:border-kx-pink transition-colors" title="YouTube">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-lg bg-kx-surface border border-kx-border flex items-center justify-center hover:border-kx-violet transition-colors" title="Instagram">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-lg bg-kx-surface border border-kx-border flex items-center justify-center hover:border-kx-cyan transition-colors" title="TikTok">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.16 15a6.34 6.34 0 0 0 10.86 4.46V12.8A8.28 8.28 0 0 0 19.59 15V11.5a4.83 4.83 0 0 1-3.77-1.21V6.69h3.77z"/></svg>
+                    </a>
+                    <a href="#" class="w-9 h-9 rounded-lg bg-kx-surface border border-kx-border flex items-center justify-center hover:border-kx-acid transition-colors" title="GitHub">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                </div>
+                <p class="font-body text-xs text-kx-muted">Keyboard shortcuts available</p>
+                <div class="flex flex-wrap gap-2 mt-1.5 text-[10px] font-mono text-kx-muted">
+                    <span class="px-1.5 py-0.5 rounded bg-kx-surface border border-kx-border">Space</span> Play
+                    <span class="px-1.5 py-0.5 rounded bg-kx-surface border border-kx-border">Ctrl+S</span> Save
+                    <span class="px-1.5 py-0.5 rounded bg-kx-surface border border-kx-border">1-7</span> Tabs
+                </div>
+            </div>
+        </div>
+        <div class="footer-divider mb-6"></div>
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-2 font-body text-xs text-kx-muted">
+                <span>© 2026 KHMERIX Studio</span>
+                <span class="text-kx-border">·</span>
+                <span>v3.1.0</span>
+                <span class="text-kx-border">·</span>
+                <span class="flex items-center gap-1">Made with <span class="text-kx-pink">♥</span> in Cambodia 🇰🇭</span>
+            </div>
+            <div class="font-mono text-[10px] text-kx-muted tracking-wider uppercase">
+                Creative Minds Cambodia
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- ═══════════════ GENERATIVE BACKGROUND ART ENGINE ═══════════════ -->
+<script>
+(function() {
+    const canvas = document.getElementById('bgArtCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, dpr;
+    let animId;
+    let time = 0;
+
+    // ─── KHMERIX color palette ───
+    const palette = [
+        { r: 244, g: 63,  b: 94  },  // pink
+        { r: 139, g: 92,  b: 246 },  // violet
+        { r: 34,  g: 211, b: 238 },  // cyan
+        { r: 45,  g: 212, b: 191 },  // teal
+        { r: 163, g: 230, b: 53  },  // acid green
+        { r: 251, g: 191, b: 36  },  // gold
+        { r: 251, g: 113, b: 133 },  // rose
+    ];
+
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randFloat(min, max) { return Math.random() * (max - min) + min; }
+    function pickColor() { return palette[randInt(0, palette.length - 1)]; }
+    function rgba(c, a) { return `rgba(${c.r},${c.g},${c.b},${a})`; }
+
+    // ─── Resize handler ───
+    function resize() {
+        dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // ─── Nebula Blobs ───
+    // Large soft gradient blobs that drift slowly
+    const nebulas = [];
+    function initNebulas() {
+        const count = randInt(4, 6);
+        for (let i = 0; i < count; i++) {
+            const c = pickColor();
+            nebulas.push({
+                x: randFloat(0, W),
+                y: randFloat(0, H),
+                radius: randFloat(150, 400),
+                color: c,
+                alpha: randFloat(0.06, 0.15),
+                vx: randFloat(-0.15, 0.15),
+                vy: randFloat(-0.1, 0.1),
+                pulse: randFloat(0.002, 0.005),
+                phase: randFloat(0, Math.PI * 2),
+            });
+        }
+    }
+    function drawNebulas() {
+        nebulas.forEach(n => {
+            const pulseFactor = 1 + Math.sin(time * n.pulse + n.phase) * 0.15;
+            const r = n.radius * pulseFactor;
+            const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
+            grad.addColorStop(0, rgba(n.color, n.alpha * 1.5));
+            grad.addColorStop(0.5, rgba(n.color, n.alpha * 0.5));
+            grad.addColorStop(1, rgba(n.color, 0));
+            ctx.fillStyle = grad;
+            ctx.fillRect(n.x - r, n.y - r, r * 2, r * 2);
+            // Drift
+            n.x += n.vx;
+            n.y += n.vy;
+            // Bounce softly at edges
+            if (n.x < -200) n.vx = Math.abs(n.vx);
+            if (n.x > W + 200) n.vx = -Math.abs(n.vx);
+            if (n.y < -200) n.vy = Math.abs(n.vy);
+            if (n.y > H + 200) n.vy = -Math.abs(n.vy);
+        });
+    }
+
+    // ─── Floating Particles ───
+    const particles = [];
+    function initParticles() {
+        const count = randInt(50, 80);
+        for (let i = 0; i < count; i++) {
+            const c = pickColor();
+            particles.push({
+                x: randFloat(0, W),
+                y: randFloat(0, H),
+                size: randFloat(1, 3),
+                color: c,
+                alpha: randFloat(0.15, 0.5),
+                vx: randFloat(-0.3, 0.3),
+                vy: randFloat(-0.3, 0.3),
+                twinkleSpeed: randFloat(0.01, 0.04),
+                phase: randFloat(0, Math.PI * 2),
+            });
+        }
+    }
+    function drawParticles() {
+        particles.forEach(p => {
+            const twinkle = 0.3 + 0.7 * ((Math.sin(time * p.twinkleSpeed + p.phase) + 1) / 2);
+            const a = p.alpha * twinkle;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = rgba(p.color, a);
+            ctx.fill();
+            // Glow
+            if (p.size > 1.5) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(p.color, a * 0.15);
+                ctx.fill();
+            }
+            p.x += p.vx;
+            p.y += p.vy;
+            // Wrap around
+            if (p.x < -10) p.x = W + 10;
+            if (p.x > W + 10) p.x = -10;
+            if (p.y < -10) p.y = H + 10;
+            if (p.y > H + 10) p.y = -10;
+        });
+    }
+
+    // ─── Connection Lines ───
+    // Draw lines between nearby particles
+    function drawConnections() {
+        const maxDist = 120;
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < maxDist) {
+                    const a = (1 - dist / maxDist) * 0.12;
+                    ctx.strokeStyle = rgba(particles[i].color, a);
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    // ─── Geometric Shapes ───
+    const shapes = [];
+    function initShapes() {
+        const types = ['ring', 'diamond', 'triangle', 'cross', 'hexagon', 'arc'];
+        const count = randInt(6, 10);
+        for (let i = 0; i < count; i++) {
+            const c = pickColor();
+            shapes.push({
+                type: types[randInt(0, types.length - 1)],
+                x: randFloat(0, W),
+                y: randFloat(0, H),
+                size: randFloat(15, 60),
+                color: c,
+                alpha: randFloat(0.08, 0.25),
+                rotation: randFloat(0, Math.PI * 2),
+                rotSpeed: randFloat(-0.003, 0.003),
+                floatSpeed: randFloat(0.003, 0.008),
+                floatAmp: randFloat(10, 30),
+                phase: randFloat(0, Math.PI * 2),
+                baseY: 0,
+            });
+            shapes[shapes.length - 1].baseY = shapes[shapes.length - 1].y;
+        }
+    }
+    function drawShape(s) {
+        ctx.save();
+        s.y = s.baseY + Math.sin(time * s.floatSpeed + s.phase) * s.floatAmp;
+        s.rotation += s.rotSpeed;
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation);
+        ctx.strokeStyle = rgba(s.color, s.alpha);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        switch (s.type) {
+            case 'ring':
+                ctx.arc(0, 0, s.size, 0, Math.PI * 2);
+                break;
+            case 'diamond':
+                ctx.moveTo(0, -s.size);
+                ctx.lineTo(s.size * 0.6, 0);
+                ctx.lineTo(0, s.size);
+                ctx.lineTo(-s.size * 0.6, 0);
+                ctx.closePath();
+                break;
+            case 'triangle':
+                const h = s.size * Math.sqrt(3) / 2;
+                ctx.moveTo(0, -h * 0.66);
+                ctx.lineTo(s.size / 2, h * 0.33);
+                ctx.lineTo(-s.size / 2, h * 0.33);
+                ctx.closePath();
+                break;
+            case 'cross':
+                const arm = s.size * 0.7;
+                ctx.moveTo(0, -arm); ctx.lineTo(0, arm);
+                ctx.moveTo(-arm, 0); ctx.lineTo(arm, 0);
+                break;
+            case 'hexagon':
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 3) * i - Math.PI / 6;
+                    const px = Math.cos(angle) * s.size;
+                    const py = Math.sin(angle) * s.size;
+                    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                break;
+            case 'arc':
+                const startAngle = randFloat(0, Math.PI);
+                ctx.arc(0, 0, s.size, startAngle, startAngle + Math.PI * 1.2);
+                break;
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+    function drawShapes() {
+        shapes.forEach(s => drawShape(s));
+    }
+
+    // ─── Flowing Wave Lines ───
+    const waves = [];
+    function initWaves() {
+        const count = randInt(3, 5);
+        for (let i = 0; i < count; i++) {
+            const c = pickColor();
+            waves.push({
+                y: randFloat(H * 0.15, H * 0.85),
+                amplitude: randFloat(20, 60),
+                frequency: randFloat(0.002, 0.005),
+                speed: randFloat(0.005, 0.015),
+                color: c,
+                alpha: randFloat(0.04, 0.1),
+                phase: randFloat(0, Math.PI * 2),
+            });
+        }
+    }
+    function drawWaves() {
+        waves.forEach(w => {
+            ctx.beginPath();
+            ctx.strokeStyle = rgba(w.color, w.alpha);
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= W; x += 3) {
+                const y = w.y + Math.sin(x * w.frequency + time * w.speed + w.phase) * w.amplitude
+                              + Math.sin(x * w.frequency * 0.5 + time * w.speed * 0.7) * w.amplitude * 0.3;
+                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        });
+    }
+
+    // ─── Grid Overlay ───
+    function drawGrid() {
+        ctx.strokeStyle = 'rgba(139,92,246,0.035)';
+        ctx.lineWidth = 0.5;
+        const spacing = 60;
+        // Create a fade mask effect using alpha based on distance from center
+        const cx = W / 2, cy = H / 2;
+        const maxR = Math.sqrt(cx * cx + cy * cy);
+        for (let x = 0; x <= W; x += spacing) {
+            const dist = Math.abs(x - cx) / cx;
+            const a = Math.max(0, 1 - dist * 1.2);
+            ctx.globalAlpha = a;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, H);
+            ctx.stroke();
+        }
+        for (let y = 0; y <= H; y += spacing) {
+            const dist = Math.abs(y - cy) / cy;
+            const a = Math.max(0, 1 - dist * 1.2);
+            ctx.globalAlpha = a;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(W, y);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    // ─── Music Note Symbols ───
+    const notes = [];
+    function initNotes() {
+        const symbols = ['\u266A', '\u266B', '\u266C', '\u2669'];
+        const count = randInt(4, 7);
+        for (let i = 0; i < count; i++) {
+            const c = pickColor();
+            notes.push({
+                symbol: symbols[randInt(0, symbols.length - 1)],
+                x: randFloat(50, W - 50),
+                y: randFloat(50, H - 50),
+                size: randFloat(14, 28),
+                color: c,
+                alpha: randFloat(0.08, 0.2),
+                floatSpeed: randFloat(0.003, 0.008),
+                floatAmp: randFloat(8, 25),
+                rotSpeed: randFloat(-0.002, 0.002),
+                rotation: randFloat(-0.3, 0.3),
+                phase: randFloat(0, Math.PI * 2),
+                baseY: 0,
+            });
+            notes[notes.length - 1].baseY = notes[notes.length - 1].y;
+        }
+    }
+    function drawNotes() {
+        notes.forEach(n => {
+            ctx.save();
+            n.y = n.baseY + Math.sin(time * n.floatSpeed + n.phase) * n.floatAmp;
+            n.rotation += n.rotSpeed;
+            ctx.translate(n.x, n.y);
+            ctx.rotate(n.rotation);
+            ctx.font = `${n.size}px serif`;
+            ctx.fillStyle = rgba(n.color, n.alpha);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(n.symbol, 0, 0);
+            ctx.restore();
+        });
+    }
+
+    // ─── Main Loop ───
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        drawNebulas();
+        drawGrid();
+        drawWaves();
+        drawConnections();
+        drawParticles();
+        drawShapes();
+        drawNotes();
+        time++;
+        animId = requestAnimationFrame(draw);
+    }
+
+    function init() {
+        resize();
+        nebulas.length = 0;
+        particles.length = 0;
+        shapes.length = 0;
+        waves.length = 0;
+        notes.length = 0;
+        initNebulas();
+        initParticles();
+        initShapes();
+        initWaves();
+        initNotes();
+        if (animId) cancelAnimationFrame(animId);
+        draw();
+    }
+
+    window.addEventListener('resize', () => {
+        resize();
+        // Re-position elements proportionally
+        nebulas.forEach(n => { n.x = Math.min(n.x, W); n.y = Math.min(n.y, H); });
+        particles.forEach(p => { p.x = Math.min(p.x, W); p.y = Math.min(p.y, H); });
+    });
+
+    init();
+})();
+</script>
+</body>
+</html>
