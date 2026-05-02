@@ -2161,7 +2161,7 @@ async function generateWithClaude(type) {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-3-5-sonnet-20241022',
                 max_tokens: 1000,
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userPrompt }]
@@ -2332,7 +2332,7 @@ async function analyzeImage() {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-3-5-sonnet-20241022',
                 max_tokens: 1000,
                 system: `You are an expert AI art director and image prompt reverse-engineer. Analyze images and produce detailed, ready-to-use prompts for AI image generators (Midjourney, Stable Diffusion, DALL-E). Output ONLY the prompt — no preamble, no explanation. Include style, subject, lighting, mood, colors, composition, and technical specs.`,
                 messages: [{
@@ -2446,7 +2446,36 @@ function randomizePrompt(type) {
 }
 
 function generateVariation(num) {
-    showNotification(`Variation ${num} applied ✨`);
+    const activeTab = document.querySelector('.ptab.active');
+    if (!activeTab) return;
+    const tabId = activeTab.id.replace('prompt-', '');
+    if (tabId === 'music') {
+        const moods = ['dark','aggressive','hype','melancholic','mysterious','ethereal'];
+        const bpms = ['slow','mid','fast','dnb'];
+        const kws = ['808','dark','atmospheric','heavy','bass','synth','reverb','glitch'];
+        document.getElementById('music-mood').value = moods[(num - 1) % moods.length];
+        document.getElementById('music-bpm').value = bpms[(num - 1) % bpms.length];
+        document.getElementById('music-keywords').value = kws.sort(() => .5 - Math.random()).slice(0, 3 + num).join(' ');
+        updateLiveCounter('music-keywords');
+        generateMusicPrompt();
+    } else if (tabId === 'lyrics') {
+        const moods = ['dark','aggressive','romantic','confident','vulnerable'];
+        document.getElementById('lyrics-mood').value = moods[(num - 1) % moods.length];
+        generateLyricsPrompt();
+    } else if (tabId === 'image') {
+        const lights = ['natural','dramatic','neon','golden-hour','moody','cinematic'];
+        document.getElementById('image-lighting').value = lights[(num - 1) % lights.length];
+        generateImagePrompt();
+    } else if (tabId === 'video') {
+        const cams = ['static','handheld','drone','tracking','slow-motion'];
+        const moods = ['cinematic','dark','dreamy','documentary','music-video'];
+        document.getElementById('video-camera').value = cams[(num - 1) % cams.length];
+        document.getElementById('video-mood').value = moods[(num - 1) % moods.length];
+        generateVideoPrompt();
+    } else if (tabId === 'education') {
+        generateEducationPrompt();
+    }
+    showNotification(`Variation ${num} generated ✨`);
 }
 
 // ==========================================
@@ -2856,7 +2885,7 @@ function toggleEffectUI(name) {
                    name === 'stereo' ? 'stereoToggle' : 'eqToggle');
     if (!toggle) return;
     const isOn = toggle.classList.toggle('on');
-    effectsState[name].enabled = isOn;
+    if (effectsState[name]) effectsState[name].enabled = isOn;
 
     // Update indicator
     const indMap = { eq: 'eq-indicator', compressor: 'comp-indicator', reverb: 'reverb-indicator', distortion: 'dist-indicator', stereo: 'stereo-indicator' };
@@ -2870,8 +2899,8 @@ function toggleEffectUI(name) {
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 if (dropZone && fileInput) {
-    dropZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processAudioFile(e.target.files[0]); });
+    dropZone.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+    fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) processAudioFile(e.target.files[0]); });
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
     dropZone.addEventListener('drop', (e) => {
@@ -2907,8 +2936,6 @@ function _processAudioFileValidated(file) {
     document.getElementById('exportArea').classList.remove('hidden');
     document.getElementById('instructions').classList.add('hidden');
     initAudioContext();
-}
-function _processAudioFileValidated(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         audioContext.decodeAudioData(e.target.result,
@@ -2935,8 +2962,9 @@ function drawWaveform(buffer) {
     const canvas = document.getElementById('waveformCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const w = canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
-    const h = canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1);
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.width = Math.max(1, Math.floor(canvas.offsetWidth * dpr));
+    const h = canvas.height = Math.max(1, Math.floor(canvas.offsetHeight * dpr));
     const data = buffer.getChannelData(0);
     const step = Math.ceil(data.length / w);
     const amp = h / 2;
@@ -3138,7 +3166,7 @@ function updateOutputGain(value) {
 
 // Export / Process
 async function processAndExport() {
-    if (!audioBuffer) { showNotification('No audio loaded', 'error'); return; }
+    if (!audioBuffer || !currentFile) { showNotification('No audio loaded', 'error'); return; }
     const format = document.getElementById('exportFormat').value;
     const quality = document.getElementById('exportQuality').value;
 
@@ -3267,7 +3295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tag = e.target.tagName.toLowerCase();
         const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            if (!isTyping) { e.preventDefault(); if (currentMainTab === 'prompt-lab') savePrompt(currentPromptTab); }
+            if (!isTyping) { e.preventDefault(); if (currentMainTab === 'prompt-lab' && currentPromptTab) savePrompt(currentPromptTab); }
         }
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
             if (!isTyping) { e.preventDefault(); if (currentMainTab === 'prompt-lab') copyToClipboard(currentPromptTab); }
@@ -3298,13 +3326,13 @@ function toggleTheme() {
     const isDark = html.classList.contains('dark');
     if (isDark) {
         html.classList.remove('dark');
-        html.classList.add('light');
+        html.classList.add('pearl');
         document.getElementById('themeToggle').textContent = '☀️';
         const mob = document.getElementById('themeToggleMobile');
         if (mob) mob.textContent = '☀️';
-        localStorage.setItem('kx-theme', 'light');
+        localStorage.setItem('kx-theme', 'pearl');
     } else {
-        html.classList.remove('light');
+        html.classList.remove('pearl');
         html.classList.add('dark');
         document.getElementById('themeToggle').textContent = '🌙';
         const mob = document.getElementById('themeToggleMobile');
@@ -3315,9 +3343,18 @@ function toggleTheme() {
 // Restore saved theme
 (function() {
     const saved = localStorage.getItem('kx-theme');
-    if (saved === 'light') {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
+    if (saved === 'dark') {
+        document.documentElement.classList.remove('pearl');
+        document.documentElement.classList.add('dark');
+        setTimeout(() => {
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.textContent = '🌙';
+            const mob = document.getElementById('themeToggleMobile');
+            if (mob) mob.textContent = '🌙';
+        }, 100);
+    } else {
+        // Default to pearl
+        document.documentElement.classList.add('pearl');
         setTimeout(() => {
             const btn = document.getElementById('themeToggle');
             if (btn) btn.textContent = '☀️';
@@ -3371,9 +3408,12 @@ document.addEventListener('keydown', function(e) {
         }
     }
 
-    // T - toggle theme
-    if (e.key === 't' && !e.ctrlKey && !e.metaKey) {
-        toggleTheme();
+    // T - toggle theme (only when not typing)
+    if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.target.isContentEditable) {
+        const tag = e.target.tagName.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+            toggleTheme();
+        }
     }
 });
 
