@@ -549,6 +549,7 @@
         });
     }
 
+    const noteChars = ['♪','♫','♩','♬','♭','♯','𝄞','𝄢'];
     const particles = [];
     function initParticles() {
         particles.length = 0;
@@ -556,13 +557,16 @@
             const c = pickColor();
             particles.push({
                 x: randFloat(0, W), y: randFloat(0, H),
-                size: randFloat(1.5, 4),
+                size: randFloat(12, 22),
                 color: c,
-                alpha: randFloat(0.1, 0.3),
-                vx: randFloat(-0.2, 0.2),
-                vy: randFloat(-0.2, 0.2),
-                twinkle: randFloat(0.005, 0.02),
+                alpha: randFloat(0.08, 0.22),
+                vx: randFloat(-0.25, 0.25),
+                vy: randFloat(-0.25, 0.25),
+                twinkle: randFloat(0.004, 0.015),
                 phase: randFloat(0, Math.PI * 2),
+                note: noteChars[Math.floor(Math.random() * noteChars.length)],
+                rot: randFloat(0, Math.PI * 2),
+                rotSpeed: randFloat(-0.008, 0.008),
             });
         }
     }
@@ -571,21 +575,21 @@
         particles.forEach(p => {
             const tw = 0.3 + 0.7 * ((Math.sin(time * p.twinkle + p.phase) + 1) / 2);
             const a = p.alpha * tw;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot + time * p.rotSpeed);
+            ctx.font = `${p.size}px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillStyle = rgba(p.color, a);
-            ctx.fill();
-            if (p.size > 2) {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-                ctx.fillStyle = rgba(p.color, a * 0.1);
-                ctx.fill();
-            }
+            ctx.fillText(p.note, 0, 0);
+            ctx.restore();
             p.x += p.vx; p.y += p.vy;
-            if (p.x < -10) p.x = W + 10;
-            if (p.x > W + 10) p.x = -10;
-            if (p.y < -10) p.y = H + 10;
-            if (p.y > H + 10) p.y = -10;
+            p.rot += p.rotSpeed;
+            if (p.x < -30) p.x = W + 30;
+            if (p.x > W + 30) p.x = -30;
+            if (p.y < -30) p.y = H + 30;
+            if (p.y > H + 30) p.y = -30;
         });
     }
 
