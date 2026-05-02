@@ -48,9 +48,7 @@
         html { scroll-behavior: smooth; }
         body {
             font-family: 'DM Sans', sans-serif;
-            background: url('bg-landing.jpg') no-repeat center center fixed;
-            background-size: cover;
-            opacity: 0.35;
+            background: #f8fafc;
             color: #334155;
             overflow-x: hidden;
             min-height: 100vh;
@@ -59,9 +57,19 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, rgba(248,250,252,0.72) 0%, rgba(240,249,255,0.68) 50%, rgba(224,242,254,0.75) 100%);
+            background: url('bg-landing.jpg') no-repeat center center fixed;
+            background-size: cover;
+            opacity: 0.22;
             pointer-events: none;
-            z-index: 0;
+            z-index: -2;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(248,250,252,0.82) 0%, rgba(240,249,255,0.78) 50%, rgba(224,242,254,0.85) 100%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* Scrollbar */
