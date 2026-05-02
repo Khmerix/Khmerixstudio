@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#09090b">
+        <meta name="theme-color" content="#09090b">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'self' blob: data:;">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>KHMERIX Studio — Audio Converter & Prompt Lab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -744,12 +746,14 @@
                 <button onclick="toggleSavedModal()" class="btn-action px-5 py-2.5 rounded-xl ml-3 flex items-center gap-2 text-sm">
                     ⭐ Saved (<span id="saved-count">0</span>)
                 </button>
+                <button onclick="toggleApiKeyModal()" class="btn-action px-3 py-2.5 rounded-xl ml-2 text-sm" title="Configure API Key">⚙️</button>
                 <button onclick="toggleTheme()" class="theme-toggle ml-2" id="themeToggle" title="Toggle Light/Dark Theme">🌙</button>
             </div>
 
             <!-- Mobile Nav -->
             <div class="md:hidden flex items-center gap-2">
                 <button onclick="toggleTheme()" class="theme-toggle" id="themeToggleMobile" title="Toggle Theme">🌙</button>
+                <button onclick="toggleApiKeyModal()" class="btn-action px-3 py-1.5 rounded-lg text-xs">⚙️</button>
                 <button onclick="toggleSavedModal()" class="btn-action px-3 py-1.5 rounded-lg text-xs">⭐ <span id="saved-count-mobile">0</span></button>
             </div>
         </div>
@@ -1563,14 +1567,28 @@
 <!-- ═══════════════════════════════════════════════ -->
 <script>
 // ==========================================
+// SECURITY: API Configuration
+// ==========================================
+function getAnthropicApiKey() {
+    // Users must configure their own API key via localStorage or prompt
+    return localStorage.getItem('khmerix_api_key') || '';
+}
+function setAnthropicApiKey(key) {
+    if (key && key.trim()) localStorage.setItem('khmerix_api_key', key.trim());
+    else localStorage.removeItem('khmerix_api_key');
+}
+let isGenerating = false;
+// ==========================================
 // STATE
 // ==========================================
 let currentMainTab = 'converter';
 let currentPromptTab = 'music';
 let currentAIProvider = 'template';
-let savedPrompts = JSON.parse(localStorage.getItem('khmerix_saved') || '[]');
+let savedPrompts = [];
+try { savedPrompts = JSON.parse(localStorage.getItem('khmerix_saved') || '[]'); } catch(e) { savedPrompts = []; }
 let uploadedImage = null;
-let promptHistory = JSON.parse(localStorage.getItem('khmerix_prompt_history') || '[]');
+let promptHistory = [];
+try { promptHistory = JSON.parse(localStorage.getItem('khmerix_prompt_history') || '[]'); } catch(e) { promptHistory = []; }
 
 // ==========================================
 // TAB SWITCHING
@@ -1808,13 +1826,21 @@ async function generateWithClaude(type) {
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating...'; }
 
     try {
+        const apiKey = getAnthropicApiKey();
+        if (!apiKey) {
+            outputEl.textContent = 'Please configure your Anthropic API key first.\n\nClick the ⚙️ Settings button in the nav (add it) or run: localStorage.setItem("khmerix_api_key", "your-key")';
+            showNotification('API key required for AI enhancement', 'error');
+            throw new Error('No API key configured');
+        }
+        if (isGenerating) { showNotification('Already generating, please wait...', 'error'); return; }
+        isGenerating = true;
+
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'claude-artifact-proxy',
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true'
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-20250514',
@@ -1839,6 +1865,7 @@ async function generateWithClaude(type) {
         outputEl.textContent = 'Error: ' + err.message;
         showNotification('Claude error: ' + err.message, 'error');
     } finally {
+        isGenerating = false;
         if (btn) { btn.disabled = false; btn.innerHTML = '✨ AI Enhanced'; }
     }
 }
@@ -1968,13 +1995,23 @@ async function analyzeImage() {
         const base64 = uploadedImage.split(',')[1];
         const mediaType = uploadedImage.split(';')[0].split(':')[1] || 'image/jpeg';
 
+        const apiKey = getAnthropicApiKey();
+        if (!apiKey) {
+            outputEl.textContent = 'Please configure your Anthropic API key first.\n\nRun: localStorage.setItem("khmerix_api_key", "your-key")';
+            showNotification('API key required for image analysis', 'error');
+            btn.disabled = false;
+            btn.textContent = '🔍 Analyze Image & Generate Prompt';
+            return;
+        }
+        if (isGenerating) { showNotification('Already processing, please wait...', 'error'); btn.disabled = false; btn.textContent = '🔍 Analyze Image & Generate Prompt'; return; }
+        isGenerating = true;
+
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': 'claude-artifact-proxy',
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true'
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-20250514',
@@ -2005,6 +2042,7 @@ async function analyzeImage() {
         outputEl.textContent = 'Error: ' + err.message;
         showNotification('Analysis error: ' + err.message, 'error');
     } finally {
+        isGenerating = false;
         btn.disabled = false;
         btn.textContent = '🔍 Analyze Image & Generate Prompt';
     }
@@ -2206,25 +2244,93 @@ function toggleSavedModal() {
     if (!modal.classList.contains('hidden')) renderSavedList();
 }
 
+function toggleApiKeyModal() {
+    const modal = document.getElementById('apikey-modal');
+    if (!modal) return;
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) {
+        const input = document.getElementById('api-key-input');
+        if (input) input.value = getAnthropicApiKey().replace(/./g, '•') || '';
+        const status = document.getElementById('api-key-status');
+        if (status) status.textContent = getAnthropicApiKey() ? 'Key is configured' : 'No key configured';
+    }
+}
+
+function saveApiKey() {
+    const input = document.getElementById('api-key-input');
+    if (!input) return;
+    const key = input.value.trim();
+    if (!key) { showNotification('Please enter a valid API key', 'error'); return; }
+    if (!key.startsWith('sk-ant')) { showNotification('Invalid Anthropic key format', 'error'); return; }
+    setAnthropicApiKey(key);
+    input.value = key.replace(/./g, '•');
+    const status = document.getElementById('api-key-status');
+    if (status) status.textContent = 'Key saved securely in localStorage';
+    showNotification('API key saved! 🔒');
+}
+
+function clearApiKey() {
+    setAnthropicApiKey('');
+    const input = document.getElementById('api-key-input');
+    if (input) input.value = '';
+    const status = document.getElementById('api-key-status');
+    if (status) status.textContent = 'Key cleared';
+    showNotification('API key cleared');
+}
+
 function renderSavedList() {
     const list = document.getElementById('saved-list');
+    if (!list) return;
+    list.innerHTML = '';
     if (savedPrompts.length === 0) {
-        list.innerHTML = '<p class="text-kx-muted text-center py-6 text-sm">No saved prompts yet...</p>';
+        const empty = document.createElement('p');
+        empty.className = 'text-kx-muted text-center py-6 text-sm';
+        empty.textContent = 'No saved prompts yet...';
+        list.appendChild(empty);
         return;
     }
-    list.innerHTML = savedPrompts.map(p => `
-        <div class="saved-card rounded-lg p-3">
-            <div class="flex justify-between items-start mb-1">
-                <span class="text-[10px] text-kx-cyan uppercase tracking-wider font-mono">${p.type}</span>
-                <div class="flex gap-2">
-                    <button onclick="loadSavedPrompt(${p.id})" class="text-kx-cyan hover:text-white text-xs transition">Load</button>
-                    <button onclick="deleteSavedPrompt(${p.id})" class="text-red-400 hover:text-red-300 text-xs transition">Delete</button>
-                </div>
-            </div>
-            <p class="text-xs text-kx-text line-clamp-2">${p.content}</p>
-            <p class="text-[10px] text-kx-muted mt-1">${p.date}</p>
-        </div>
-    `).join('');
+    savedPrompts.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'saved-card rounded-lg p-3';
+
+        const header = document.createElement('div');
+        header.className = 'flex justify-between items-start mb-1';
+
+        const typeSpan = document.createElement('span');
+        typeSpan.className = 'text-[10px] text-kx-cyan uppercase tracking-wider font-mono';
+        typeSpan.textContent = p.type;
+
+        const actions = document.createElement('div');
+        actions.className = 'flex gap-2';
+
+        const loadBtn = document.createElement('button');
+        loadBtn.className = 'text-kx-cyan hover:text-white text-xs transition';
+        loadBtn.textContent = 'Load';
+        loadBtn.onclick = () => loadSavedPrompt(p.id);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'text-red-400 hover:text-red-300 text-xs transition';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => deleteSavedPrompt(p.id);
+
+        actions.appendChild(loadBtn);
+        actions.appendChild(delBtn);
+        header.appendChild(typeSpan);
+        header.appendChild(actions);
+
+        const contentP = document.createElement('p');
+        contentP.className = 'text-xs text-kx-text line-clamp-2';
+        contentP.textContent = p.content;
+
+        const dateP = document.createElement('p');
+        dateP.className = 'text-[10px] text-kx-muted mt-1';
+        dateP.textContent = p.date;
+
+        card.appendChild(header);
+        card.appendChild(contentP);
+        card.appendChild(dateP);
+        list.appendChild(card);
+    });
 }
 
 function loadSavedPrompt(id) {
@@ -2281,16 +2387,30 @@ function clearAllSaved() {
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file || !file.type.startsWith('image/')) { showNotification('Please upload an image', 'error'); return; }
-    uploadedImage = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        document.getElementById('uploaded-image').src = e.target.result;
-        document.getElementById('upload-preview').classList.remove('hidden');
-        const btn = document.getElementById('analyze-btn');
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    // Validate file signature (magic numbers) for common image formats
+    const readerSig = new FileReader();
+    readerSig.readAsArrayBuffer(file.slice(0, 4));
+    readerSig.onload = (sigEvent) => {
+        const arr = new Uint8Array(sigEvent.target.result);
+        const isJPEG = arr[0] === 0xFF && arr[1] === 0xD8;
+        const isPNG = arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47;
+        const isGIF = arr[0] === 0x47 && arr[1] === 0x49 && arr[2] === 0x46;
+        const isWebP = arr[0] === 0x52 && arr[1] === 0x49;
+        if (!isJPEG && !isPNG && !isGIF && !isWebP) {
+            showNotification('Invalid image file signature', 'error');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            uploadedImage = e.target.result; // Store data URL, not File object
+            document.getElementById('uploaded-image').src = e.target.result;
+            document.getElementById('upload-preview').classList.remove('hidden');
+            const btn = document.getElementById('analyze-btn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        };
+        reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
 }
 
 function clearUpload() {
@@ -2387,6 +2507,7 @@ function createEffectNodes() {
 }
 
 function createImpulseResponse(duration, decay) {
+    if (!audioContext) return null;
     const sr = audioContext.sampleRate;
     const len = sr * duration;
     const impulse = audioContext.createBuffer(2, len, sr);
@@ -2444,6 +2565,23 @@ if (dropZone && fileInput) {
 function processAudioFile(file) {
     if (!file.type.startsWith('audio/')) { showNotification('Please upload an audio file', 'error'); return; }
     if (file.size > 50 * 1024 * 1024) { showNotification('Max 50MB', 'error'); return; }
+    // Basic file signature validation for common audio formats
+    const sigReader = new FileReader();
+    sigReader.readAsArrayBuffer(file.slice(0, 12));
+    sigReader.onload = (se) => {
+        const arr = new Uint8Array(se.target.result);
+        const isMP3 = arr[0] === 0xFF && (arr[1] === 0xFB || arr[1] === 0xF3 || arr[1] === 0xF2 || arr[1] === 0xFD);
+        const isWAV = arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46;
+        const isOGG = arr[0] === 0x4F && arr[1] === 0x67 && arr[2] === 0x67 && arr[3] === 0x53;
+        const isFLAC = arr[0] === 0x66 && arr[1] === 0x4C && arr[2] === 0x61 && arr[3] === 0x43;
+        if (!isMP3 && !isWAV && !isOGG && !isFLAC) {
+            showNotification('Unrecognized audio file format', 'error');
+            return;
+        }
+        _processAudioFileValidated(file);
+    };
+}
+function _processAudioFileValidated(file) {
     currentFile = file;
     document.getElementById('audioFilename').textContent = file.name;
     document.getElementById('audioInfoArea').classList.remove('hidden');
@@ -2451,7 +2589,8 @@ function processAudioFile(file) {
     document.getElementById('exportArea').classList.remove('hidden');
     document.getElementById('instructions').classList.add('hidden');
     initAudioContext();
-
+}
+function _processAudioFileValidated(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         audioContext.decodeAudioData(e.target.result,
@@ -2547,6 +2686,7 @@ function pauseAudio() {
 function resetAudio() {
     if (isPlaying) pauseAudio();
     pauseTime = 0;
+    if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
     document.getElementById('currentTime').textContent = '0:00';
     document.getElementById('playbackIndicator').style.left = '0%';
 }
@@ -2780,14 +2920,16 @@ function bufferToWave(buf, len) {
     w32(0x61746164); w32(length - pos - 4);
 
     for (let i = 0; i < ch; i++) channels.push(buf.getChannelData(i));
-    while (pos < len) {
+    let sampleIdx = 0;
+    while (sampleIdx < len) {
         for (let i = 0; i < ch; i++) {
-            let s = Math.max(-1, Math.min(1, channels[i][pos]));
-            s = (0.5 + s < 0 ? s * 32768 : s * 32767) | 0;
+            let s = Math.max(-1, Math.min(1, channels[i][sampleIdx]));
+            s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            s = Math.max(-32768, Math.min(32767, s)) | 0;
             view.setInt16(44 + offset, s, true);
             offset += 2;
         }
-        pos++;
+        sampleIdx++;
     }
     return new Blob([buffer], { type: 'audio/wav' });
 }
@@ -2804,13 +2946,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+        const tag = e.target.tagName.toLowerCase();
+        const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            if (currentMainTab === 'prompt-lab') savePrompt(currentPromptTab);
+            if (!isTyping) { e.preventDefault(); if (currentMainTab === 'prompt-lab') savePrompt(currentPromptTab); }
         }
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
-            e.preventDefault();
-            if (currentMainTab === 'prompt-lab') copyToClipboard(currentPromptTab);
+            if (!isTyping) { e.preventDefault(); if (currentMainTab === 'prompt-lab') copyToClipboard(currentPromptTab); }
         }
     });
 
@@ -2869,9 +3011,9 @@ function toggleTheme() {
 
 // ═══════════════ KEYBOARD SHORTCUTS ═══════════════
 document.addEventListener('keydown', function(e) {
-    // Don't trigger when typing in inputs
+    // Don't trigger when typing in inputs or contenteditable
     const tag = e.target.tagName.toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
 
     // Space - toggle playback
     if (e.code === 'Space') {
