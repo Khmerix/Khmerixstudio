@@ -48,8 +48,9 @@
         html { scroll-behavior: smooth; }
         body {
             font-family: 'DM Sans', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 50%, #e0f2fe 100%);
-            color: #334155;
+            background: url('bg-landing.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #f1f5f9;
             overflow-x: hidden;
             min-height: 100vh;
         }
@@ -57,9 +58,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background:
-                radial-gradient(ellipse at 20% 0%, rgba(56,189,248,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 100%, rgba(99,102,241,0.08) 0%, transparent 60%);
+            background: linear-gradient(135deg, rgba(15,23,42,0.75) 0%, rgba(30,41,59,0.65) 50%, rgba(15,23,42,0.8) 100%);
             pointer-events: none;
             z-index: 0;
         }
@@ -127,9 +126,9 @@
 
         /* Glass Card */
         .glass-card {
-            background: rgba(255,255,255,.7);
+            background: rgba(15,23,42,.6);
             backdrop-filter: blur(24px);
-            border: 1px solid rgba(204,228,255,.5);
+            border: 1px solid rgba(56,189,248,.2);
             box-shadow:
                 0 12px 40px rgba(14,165,233,0.1),
                 0 4px 12px rgba(148,163,184,0.08),
@@ -150,9 +149,9 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             z-index: 50;
-            background: rgba(255,255,255,.8);
+            background: rgba(15,23,42,.7);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(204,228,255,.4);
+            border-bottom: 1px solid rgba(56,189,248,.15);
             box-shadow: 0 2px 20px rgba(14,165,233,0.06);
         }
 
@@ -246,7 +245,7 @@
         /* Footer */
         .landing-footer {
             border-top: 1px solid rgba(204,228,255,.5);
-            background: rgba(255,255,255,.8);
+            background: rgba(15,23,42,.7);
             backdrop-filter: blur(16px);
         }
     </style>
@@ -276,9 +275,9 @@
 
             <!-- Desktop Links -->
             <div class="hidden md:flex items-center gap-8">
-                <a href="#features" class="font-body text-sm font-medium text-kx-text hover:text-kx-cyan transition-colors">Features</a>
-                <a href="#how-it-works" class="font-body text-sm font-medium text-kx-text hover:text-kx-cyan transition-colors">How It Works</a>
-                <a href="#studio" class="font-body text-sm font-medium text-kx-text hover:text-kx-cyan transition-colors">Studio</a>
+                <a href="#features" class="font-body text-sm font-medium text-slate-300 hover:text-kx-cyan transition-colors">Features</a>
+                <a href="#how-it-works" class="font-body text-sm font-medium text-slate-300 hover:text-kx-cyan transition-colors">How It Works</a>
+                <a href="#studio" class="font-body text-sm font-medium text-slate-300 hover:text-kx-cyan transition-colors">Studio</a>
             </div>
 
             <!-- CTA -->
@@ -306,7 +305,7 @@
         </h1>
 
         <!-- Subtitle -->
-        <p class="font-body text-lg md:text-xl text-kx-text max-w-2xl mx-auto mb-4 leading-relaxed">
+        <p class="font-body text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-4 leading-relaxed">
             Professional audio processing with real-time effects, EQ, and waveform visualization — paired with an AI-powered prompt laboratory for music, lyrics, images, video, and education.
         </p>
         <p class="font-mono text-xs text-kx-cyan tracking-wider mb-10">Powered by Web Audio API · AI Prompt Engineering</p>
@@ -356,7 +355,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-16 reveal">
             <h2 class="font-display font-extrabold text-3xl md:text-5xl text-kx-white mb-4">Everything You Need</h2>
-            <p class="font-body text-kx-text max-w-xl mx-auto">Two powerful studios in one seamless experience. Craft audio and generate AI prompts without switching apps.</p>
+            <p class="font-body text-slate-300 max-w-xl mx-auto">Two powerful studios in one seamless experience. Craft audio and generate AI prompts without switching apps.</p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -382,19 +381,19 @@
             <div class="glass-card p-6 reveal">
                 <div class="feat-icon">🎲</div>
                 <h3 class="font-display font-bold text-lg text-kx-white mb-2">Prompt Randomizer</h3>
-                <p class="font-body text-sm text-kx-text leading-relaxed">Instantly randomize genre, mood, BPM, lighting, camera work, and keywords with one click for creative exploration.</p>
+                <p class="font-body text-sm text-slate-300 leading-relaxed">Instantly randomize genre, mood, BPM, lighting, camera work, and keywords with one click for creative exploration.</p>
             </div>
             <!-- Feature 5 -->
             <div class="glass-card p-6 reveal">
                 <div class="feat-icon">🤖</div>
                 <h3 class="font-display font-bold text-lg text-kx-white mb-2">AI Enhancement</h3>
-                <p class="font-body text-sm text-kx-text leading-relaxed">Connect your own Anthropic API key to enhance prompts with Claude. Includes image analysis with Vision.</p>
+                <p class="font-body text-sm text-slate-300 leading-relaxed">Connect your own Anthropic API key to enhance prompts with Claude. Includes image analysis with Vision.</p>
             </div>
             <!-- Feature 6 -->
             <div class="glass-card p-6 reveal">
                 <div class="feat-icon">⭐</div>
                 <h3 class="font-display font-bold text-lg text-kx-white mb-2">Save & Organize</h3>
-                <p class="font-body text-sm text-kx-text leading-relaxed">Save your favorite prompts locally, browse history, export collections as JSON, and reload anytime.</p>
+                <p class="font-body text-sm text-slate-300 leading-relaxed">Save your favorite prompts locally, browse history, export collections as JSON, and reload anytime.</p>
             </div>
         </div>
     </div>
@@ -405,7 +404,7 @@
     <div class="max-w-5xl mx-auto">
         <div class="text-center mb-16 reveal">
             <h2 class="font-display font-extrabold text-3xl md:text-5xl text-kx-white mb-4">How It Works</h2>
-            <p class="font-body text-kx-text max-w-xl mx-auto">Get started in seconds. No installation, no signup — just open and create.</p>
+            <p class="font-body text-slate-300 max-w-xl mx-auto">Get started in seconds. No installation, no signup — just open and create.</p>
         </div>
 
         <div class="space-y-8">
@@ -414,7 +413,7 @@
                 <div class="step-num">1</div>
                 <div>
                     <h3 class="font-display font-bold text-xl text-kx-white mb-2">Open the Studio</h3>
-                    <p class="font-body text-kx-text leading-relaxed">Click "Launch Studio" to enter the full workspace. Everything runs in your browser — no downloads or accounts needed.</p>
+                    <p class="font-body text-slate-300 leading-relaxed">Click "Launch Studio" to enter the full workspace. Everything runs in your browser — no downloads or accounts needed.</p>
                 </div>
             </div>
             <!-- Step 2 -->
@@ -422,7 +421,7 @@
                 <div class="step-num">2</div>
                 <div>
                     <h3 class="font-display font-bold text-xl text-kx-white mb-2">Choose Your Tool</h3>
-                    <p class="font-body text-kx-text leading-relaxed">Switch between the Audio Converter for music processing or the Prompt Lab for AI content generation. Use the left panel for quick navigation.</p>
+                    <p class="font-body text-slate-300 leading-relaxed">Switch between the Audio Converter for music processing or the Prompt Lab for AI content generation. Use the left panel for quick navigation.</p>
                 </div>
             </div>
             <!-- Step 3 -->
@@ -430,7 +429,7 @@
                 <div class="step-num">3</div>
                 <div>
                     <h3 class="font-display font-bold text-xl text-kx-white mb-2">Create & Export</h3>
-                    <p class="font-body text-kx-text leading-relaxed">Process audio with effects and export WAV files, or generate prompts and copy/export them for use with Midjourney, Suno, Runway, and more.</p>
+                    <p class="font-body text-slate-300 leading-relaxed">Process audio with effects and export WAV files, or generate prompts and copy/export them for use with Midjourney, Suno, Runway, and more.</p>
                 </div>
             </div>
         </div>
@@ -442,7 +441,7 @@
     <div class="max-w-4xl mx-auto text-center">
         <div class="glass-card p-10 md:p-16 reveal">
             <h2 class="font-display font-extrabold text-3xl md:text-5xl text-kx-white mb-4">Ready to Create?</h2>
-            <p class="font-body text-kx-text max-w-lg mx-auto mb-8 leading-relaxed">Jump into the studio and start processing audio or generating AI prompts. All tools are free and run entirely in your browser.</p>
+            <p class="font-body text-slate-300 max-w-lg mx-auto mb-8 leading-relaxed">Jump into the studio and start processing audio or generating AI prompts. All tools are free and run entirely in your browser.</p>
             <a href="studio.html" class="btn-3d px-10 py-5 text-lg inline-flex">
                 <span>🚀</span> Launch Studio Now
             </a>
@@ -461,7 +460,7 @@
                 <span class="text-kx-border">·</span>
                 <span>v3.2.0</span>
                 <span class="text-kx-border">·</span>
-                <span class="flex items-center gap-1">Made with <span class="text-kx-pink">♥</span> in Cambodia 🇰🇭</span>
+                <span class="flex items-center gap-1 text-slate-300">Made with <span class="text-kx-pink">♥</span> in Cambodia 🇰🇭</span>
             </div>
             <div class="flex items-center gap-4">
                 <a href="studio.html" class="font-body text-xs text-kx-muted hover:text-kx-pink transition-colors">Studio</a>
