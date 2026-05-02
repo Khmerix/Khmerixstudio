@@ -1043,7 +1043,8 @@
             width: 300px;
             height: 100vh;
             z-index: 60;
-            background: linear-gradient(180deg, #f8fafc 0%, #f0f9ff 100%);
+            background: url('bg-sidepanel.jpg') no-repeat center center;
+            background-size: 100% 100%;
             border-right: 1px solid rgba(204,228,255,.6);
             box-shadow:
                 8px 0 32px rgba(14,165,233,0.1),
@@ -1052,6 +1053,18 @@
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             overflow-y: auto;
             overflow-x: hidden;
+        }
+        #sidePanel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(248,250,252,0.82) 0%, rgba(240,249,255,0.78) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        #sidePanel > * {
+            position: relative;
+            z-index: 1;
         }
         #sidePanel.open {
             transform: translateX(0);
