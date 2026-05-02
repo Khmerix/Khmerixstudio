@@ -1704,7 +1704,7 @@
     <div class="flex flex-wrap justify-center gap-1.5 mb-6 sticky top-16 md:top-[64px] z-30 glass p-3 rounded-xl border border-kx-border/50">
         <button class="nav-tab active px-3 py-1.5 rounded-lg text-xs" data-tab="music" onclick="switchPromptTab('music')">🎵 Music</button>
         <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="lyrics" onclick="switchPromptTab('lyrics')">🎤 Lyrics</button>
-        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="image" onclick="switchPromptTab('image')">🎨 Images</button>
+        <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="image" onclick="switchPromptTab('image')">🎨 3D Character</button>
         <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="video" onclick="switchPromptTab('video')">🎬 Video</button>
         <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="education" onclick="switchPromptTab('education')">📚 Education</button>
         <button class="nav-tab px-3 py-1.5 rounded-lg text-xs" data-tab="keywords" onclick="switchPromptTab('keywords')">🔑 Keywords</button>
@@ -1918,67 +1918,125 @@
         </div>
     </div>
 
-    <!-- ═══ IMAGE TAB ═══ -->
+    <!-- ═══ IMAGE TAB — 3D CHARACTER DESIGN ═══ -->
     <div id="prompt-image" class="ptab">
         <div class="glass rounded-2xl p-5 md:p-6">
-            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎨 ART PROMPT ENGINE</h3>
+            <h3 class="font-display font-bold text-xl mb-4 text-kx-pink flex items-center gap-2">🎨 3D CHARACTER PROMPT ENGINE</h3>
             <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-5">
-                <button class="tag-btn active py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Photorealistic</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Digital Art</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Anime</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Oil Painting</button>
+                <button class="tag-btn active py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">3D Stylized</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">3D Realistic</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Chibi</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Anime 3D</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Cartoon</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Low Poly</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Voxel</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Pixar Style</button>
                 <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Cyberpunk</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">3D Render</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Watercolor</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Pencil</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Pixel Art</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Concept</button>
-                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Surrealist</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Fantasy</button>
+                <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Sci-Fi</button>
                 <button class="tag-btn py-2.5 rounded-lg style-btn" onclick="selectTag('.style-btn',this)">Minimalist</button>
             </div>
+            <div class="grid md:grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Character Type</label>
+                    <select id="image-character" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="man">👨 Man</option>
+                        <option value="woman">👩 Woman</option>
+                        <option value="boy">👦 Boy</option>
+                        <option value="girl">👧 Girl</option>
+                        <option value="creature">🐉 Creature / Beast</option>
+                        <option value="robot">🤖 Robot / Android</option>
+                        <option value="animal">🐺 Animal</option>
+                        <option value="superhero">🦸 Superhero</option>
+                        <option value="villain">🦹 Villain</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Pose</label>
+                    <select id="image-pose" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="standing">Standing</option>
+                        <option value="walking">Walking</option>
+                        <option value="running">Running</option>
+                        <option value="action">Action / Dynamic</option>
+                        <option value="sitting">Sitting</option>
+                        <option value="portrait">Portrait / Bust</option>
+                        <option value="idle">Idle / Relaxed</option>
+                        <option value="combat">Combat / Fighting</option>
+                    </select>
+                </div>
+            </div>
             <div class="mb-5">
-                <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Subject / Description</label>
+                <label class="font-mono text-[10px] uppercase tracking-wider text-kx-cyan mb-1.5 block">Character Description</label>
                 <div class="relative">
-                    <input type="text" id="image-subject" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="Describe your visual..." oninput="updateLiveCounter('image-subject')">
+                    <input type="text" id="image-subject" class="w-full input-kx rounded-lg px-3 py-3 pr-12 text-sm" placeholder="Describe appearance, outfit, personality..." oninput="updateLiveCounter('image-subject')">
                     <button class="absolute right-2 top-1/2 -translate-y-1/2 mic-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm" onclick="startVoiceInput('image-subject')">🎤</button>
                 </div>
                 <div class="flex flex-wrap gap-1.5 mt-2">
-                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','futuristic warrior')">⚔️ warrior</span>
-                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','neon cityscape')">🏙️ city</span>
-                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','mystical forest')">🌲 forest</span>
-                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','ancient temple')">⛩️ temple</span>
-                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','space station')">🚀 space</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','young Khmer warrior with golden armor and red scarf')">⚔️ Khmer warrior</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','stylish woman in neon streetwear with cybernetic arm')">🦾 cyber street</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','friendly old man with white beard and wizard robes')">🧙 wise wizard</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','cute chibi girl with oversized hoodie and headphones')">🎧 chibi gamer</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','muscular action hero with tactical gear and glowing eyes')">💪 action hero</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','elegant woman in flowing silk dress with flower crown')">👗 elegant</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','fierce female assassin with twin daggers and hooded cloak')">🗡️ assassin</span>
+                    <span class="qw px-2.5 py-1 rounded" onclick="setInput('image-subject','robot child with round eyes and metallic body')">🤖 robot kid</span>
                 </div>
             </div>
-            <div class="grid md:grid-cols-2 gap-3 mb-5">
-                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Lighting</label>
+            <div class="grid md:grid-cols-3 gap-3 mb-5">
+                <div>
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Lighting</label>
                     <select id="image-lighting" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
-                        <option value="natural">Natural</option><option value="dramatic">Dramatic</option><option value="neon">Neon</option>
-                        <option value="golden-hour">Golden Hour</option><option value="moody">Moody</option><option value="cinematic">Cinematic</option>
-                        <option value="volumetric">Volumetric</option><option value="bioluminescent">Bioluminescent</option>
-                    </select></div>
-                <div><label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Aspect Ratio</label>
+                        <option value="natural">Natural</option>
+                        <option value="dramatic">Dramatic</option>
+                        <option value="neon">Neon</option>
+                        <option value="golden-hour">Golden Hour</option>
+                        <option value="moody">Moody</option>
+                        <option value="cinematic">Cinematic</option>
+                        <option value="volumetric">Volumetric</option>
+                        <option value="studio">Studio / Key Light</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Mood / Expression</label>
+                    <select id="image-mood" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
+                        <option value="confident">Confident</option>
+                        <option value="mysterious">Mysterious</option>
+                        <option value="joyful">Joyful / Happy</option>
+                        <option value="serious">Serious / Focused</option>
+                        <option value="fierce">Fierce / Aggressive</option>
+                        <option value="calm">Calm / Peaceful</option>
+                        <option value="playful">Playful / Cheeky</option>
+                        <option value="determined">Determined</option>
+                        <option value="sad">Melancholic / Sad</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-mono text-[10px] uppercase tracking-wider text-kx-text mb-1.5 block">Aspect Ratio</label>
                     <select id="image-ratio" class="w-full input-kx rounded-lg px-3 py-2.5 text-sm">
-                        <option value="1:1">1:1 Square</option><option value="16:9">16:9 Wide</option>
-                        <option value="9:16">9:16 Portrait</option><option value="4:3">4:3 Classic</option><option value="21:9">21:9 Ultra Wide</option>
-                    </select></div>
+                        <option value="1:1">1:1 Square</option>
+                        <option value="9:16">9:16 Portrait</option>
+                        <option value="16:9">16:9 Wide</option>
+                        <option value="4:3">4:3 Classic</option>
+                        <option value="21:9">21:9 Ultra Wide</option>
+                    </select>
+                </div>
             </div>
             <div class="flex gap-2">
                 <button onclick="randomizePrompt('image')" class="flex-1 btn-outline py-2.5 rounded-xl text-sm">🎲 Random</button>
-                <button onclick="generateImagePrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate Image Prompt</button>
+                <button onclick="generateImagePrompt()" class="flex-[2] btn-gen py-2.5 rounded-xl text-sm">⚡ Generate 3D Character Prompt</button>
             </div>
-            <button onclick="generateAI('image')" class="w-full btn-ai mt-2 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">✨ AI Enhanced</button>
+            <button onclick="generateAI('image')" class="w-full btn-ai mt-2 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">✨ AI Enhanced Character Prompt</button>
         </div>
         <div class="glass rounded-2xl p-5 md:p-6 sticky-out">
             <div class="flex justify-between items-center mb-3 border-b border-kx-border pb-3">
-                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED IMAGE PROMPT</span>
+                <span class="font-display text-sm text-kx-cyan tracking-wider">GENERATED 3D CHARACTER PROMPT</span>
                 <div class="flex gap-1.5">
                     <button onclick="savePrompt('image')" id="save-image" class="btn-action px-2.5 py-1.5 rounded-lg">⭐</button>
                     <button onclick="copyToClipboard('image')" class="btn-action px-2.5 py-1.5 rounded-lg">📋</button>
                     <button onclick="exportPrompt('image')" class="btn-action px-2.5 py-1.5 rounded-lg">📤</button>
                 </div>
             </div>
-            <div id="image-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Select style and generate image prompt...</div>
+            <div id="image-output" class="output-box rounded-lg p-5 min-h-[180px] text-sm leading-relaxed text-kx-text">Choose a character type and style, then generate your 3D character prompt...</div>
             <div class="flex gap-4 mt-3 font-mono text-[11px] text-kx-muted">
                 <span>📝 <span id="image-chars" class="text-kx-cyan">0</span> chars</span>
                 <span>📊 <span id="image-words" class="text-kx-cyan">0</span> words</span>
@@ -2381,18 +2439,28 @@ function generateLyricsPrompt() {
 
 function generateImagePrompt() {
     const activeTab = document.getElementById('prompt-image');
-    const style = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Photorealistic';
-    const subject = document.getElementById('image-subject')?.value || 'epic landscape';
-    const lighting = document.getElementById('image-lighting')?.value || 'dramatic';
-    const ratio = document.getElementById('image-ratio')?.value || '16:9';
+    const style = activeTab?.querySelector('.tag-btn.active')?.textContent.trim() || '3D Stylized';
+    const character = document.getElementById('image-character')?.value || 'man';
+    const pose = document.getElementById('image-pose')?.value || 'standing';
+    const subject = document.getElementById('image-subject')?.value || '';
+    const lighting = document.getElementById('image-lighting')?.value || 'natural';
+    const mood = document.getElementById('image-mood')?.value || 'confident';
+    const ratio = document.getElementById('image-ratio')?.value || '1:1';
 
-    let prompt = `${style} style image of ${subject}. `;
-    prompt += `Lighting: ${lighting}. Aspect ratio: ${ratio}. `;
-    prompt += `Ultra detailed, 8K resolution, professional quality, sharp focus, `;
-    prompt += `masterful composition, award-winning photography/art.`;
+    const charLabels = { man:'man', woman:'woman', boy:'boy', girl:'girl', creature:'creature', robot:'robot/android', animal:'anthropomorphic animal', superhero:'superhero', villain:'villain' };
+    const charLabel = charLabels[character] || character;
+
+    let prompt = `3D render of a ${style.toLowerCase()} ${charLabel} character, ${pose} pose`;
+    if (subject) prompt += `, ${subject}`;
+    prompt += `. ${mood.charAt(0).toUpperCase() + mood.slice(1)} expression. `;
+    prompt += `${lighting.charAt(0).toUpperCase() + lighting.slice(1)} lighting. `;
+    prompt += `Highly detailed, clean topology, professional 3D character design, `;
+    prompt += `studio quality, game-ready asset, octane render, subsurface scattering, `;
+    prompt += `PBR materials, optimized mesh, expressive face, strong silhouette. `;
+    prompt += `Aspect ratio ${ratio}.`;
 
     setOutput('image', prompt);
-    showNotification('Image prompt generated! 🎨');
+    showNotification('3D character prompt generated! 🎨');
 }
 
 function generateVideoPrompt() {
@@ -2544,10 +2612,13 @@ function gatherContext(type) {
         ctx.style = document.getElementById('lyrics-style')?.value || 'modern';
     } else if (type === 'image') {
         const tab = document.getElementById('prompt-image');
-        ctx.style = tab?.querySelector('.tag-btn.active')?.textContent.trim() || 'Photorealistic';
-        ctx.subject = document.getElementById('image-subject')?.value || 'epic landscape';
-        ctx.lighting = document.getElementById('image-lighting')?.value || 'dramatic';
-        ctx.ratio = document.getElementById('image-ratio')?.value || '16:9';
+        ctx.style = tab?.querySelector('.tag-btn.active')?.textContent.trim() || '3D Stylized';
+        ctx.character = document.getElementById('image-character')?.value || 'man';
+        ctx.pose = document.getElementById('image-pose')?.value || 'standing';
+        ctx.subject = document.getElementById('image-subject')?.value || '';
+        ctx.lighting = document.getElementById('image-lighting')?.value || 'natural';
+        ctx.mood = document.getElementById('image-mood')?.value || 'confident';
+        ctx.ratio = document.getElementById('image-ratio')?.value || '1:1';
     } else if (type === 'video') {
         ctx.scene = document.getElementById('video-scene')?.value || 'cinematic shot';
         ctx.camera = document.getElementById('video-camera')?.value || 'static';
@@ -2568,7 +2639,7 @@ function getSystemPrompt(type) {
     const prompts = {
         music: `You are an expert music producer and AI prompt engineer specializing in crafting detailed beat prompts for AI music generators like Mureka, Suno, and Udio. You write vivid, technically precise prompts that produce outstanding results. Output ONLY the ready-to-use prompt text — no preamble, no labels, no explanation. Max 400 words.`,
         lyrics: `You are a talented rap lyricist and ghostwriter. You write full, authentic rap songs with strong rhyme schemes, wordplay, and vivid storytelling. Output ONLY the complete lyrics — include [Intro], [Verse 1], [Hook/Chorus], [Verse 2], [Bridge/Outro] labels. No preamble or explanation. Aim for 80-120 lines.`,
-        image: `You are a world-class AI art director and prompt engineer for image generators like Midjourney, DALL-E, and Stable Diffusion. Craft highly detailed, evocative prompts that produce stunning visuals. Output ONLY the ready-to-use image prompt — no preamble. Max 200 words.`,
+        image: `You are an expert 3D character artist and AI prompt engineer specializing in crafting detailed prompts for 3D character generators, game asset tools, and AI image models like Midjourney, DALL-E, and Stable Diffusion. You create prompts focused on character design: men, women, creatures, heroes, villains, and stylized figures. Include details on pose, expression, clothing, materials, lighting, and rendering style. Output ONLY the ready-to-use prompt text — no preamble, no labels. Max 200 words.`,
         video: `You are a professional cinematographer and AI video prompt specialist for tools like Runway, Sora, and Pika. Write cinematic, detailed video generation prompts. Output ONLY the ready-to-use video prompt — no preamble. Max 150 words.`,
         education: `You are an expert educator and instructional designer with deep experience in ESL/EFL teaching and curriculum development. Create thorough, well-structured educational content. Output ONLY the educational content — no preamble. Use clear headings and organized sections.`
     };
@@ -2600,14 +2671,17 @@ Keywords to include: ${ctx.keywords || 'none specified'}
 Write authentic, hard-hitting lyrics with strong internal rhymes, wordplay, and vivid imagery. Include [Intro], [Verse 1], [Hook], [Verse 2], [Hook], [Outro] sections.`;
     }
     if (type === 'image') {
-        return `Create a detailed image generation prompt with these specs:
+        return `Create a detailed 3D character design prompt with these specs:
 
 Style: ${ctx.style}
-Subject: ${ctx.subject}
+Character Type: ${ctx.character}
+Pose: ${ctx.pose}
+Description: ${ctx.subject || 'none specified'}
+Expression / Mood: ${ctx.mood}
 Lighting: ${ctx.lighting}
 Aspect Ratio: ${ctx.ratio}
 
-Make it highly detailed with specific artistic techniques, color palettes, compositional elements, and technical camera/rendering specs.`;
+Make it highly detailed with specific materials, clothing details, facial features, proportions, rendering style, and technical 3D specs. Focus on game-ready or portfolio-quality character design.`;
     }
     if (type === 'video') {
         return `Create a detailed video generation prompt:
@@ -2851,8 +2925,14 @@ function randomizePrompt(type) {
             const tab = document.getElementById('prompt-image');
             const btns = tab?.querySelectorAll('.tag-btn');
             if (btns?.length) { btns.forEach(b => b.classList.remove('active')); btns[Math.floor(Math.random() * btns.length)].classList.add('active'); }
-            const lights = ['natural','dramatic','neon','golden-hour','moody','cinematic'];
+            const chars = ['man','woman','boy','girl','creature','robot','animal','superhero','villain'];
+            document.getElementById('image-character').value = chars[Math.floor(Math.random() * chars.length)];
+            const poses = ['standing','walking','running','action','sitting','portrait','idle','combat'];
+            document.getElementById('image-pose').value = poses[Math.floor(Math.random() * poses.length)];
+            const lights = ['natural','dramatic','neon','golden-hour','moody','cinematic','volumetric','studio'];
             document.getElementById('image-lighting').value = lights[Math.floor(Math.random() * lights.length)];
+            const moods = ['confident','mysterious','joyful','serious','fierce','calm','playful','determined','sad'];
+            document.getElementById('image-mood').value = moods[Math.floor(Math.random() * moods.length)];
             showNotification('Randomized! 🎲'); break;
         }
         case 'video': {
