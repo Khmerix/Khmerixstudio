@@ -3473,7 +3473,9 @@ function processAudioFile(file) {
     sigReader.readAsArrayBuffer(file.slice(0, 12));
     sigReader.onload = (se) => {
         const arr = new Uint8Array(se.target.result);
-        const isMP3 = arr[0] === 0xFF && (arr[1] === 0xFB || arr[1] === 0xF3 || arr[1] === 0xF2 || arr[1] === 0xFD);
+        // ID3-tagged MP3 (most common) or raw MPEG sync frame
+        const isMP3 = (arr[0] === 0x49 && arr[1] === 0x44 && arr[2] === 0x33) ||
+                      (arr[0] === 0xFF && (arr[1] & 0xE0) === 0xE0);
         const isWAV = arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46;
         const isOGG = arr[0] === 0x4F && arr[1] === 0x67 && arr[2] === 0x67 && arr[3] === 0x53;
         const isFLAC = arr[0] === 0x66 && arr[1] === 0x4C && arr[2] === 0x61 && arr[3] === 0x43;
