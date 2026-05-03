@@ -289,6 +289,195 @@
             background: rgba(255,255,255,.65);
             backdrop-filter: blur(16px);
         }
+
+        /* Gothic toggle button */
+        .gothic-btn {
+            background: transparent;
+            border: 1px solid rgba(148,163,184,.35);
+            border-radius: 10px;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1rem;
+            transition: all .2s;
+        }
+        .gothic-btn:hover { border-color: #94a3b8; background: rgba(148,163,184,.08); }
+        .gothic-btn.gothic-active {
+            box-shadow: 0 0 14px rgba(255,255,255,.35), 0 0 30px rgba(255,255,255,.12);
+            border-color: rgba(255,255,255,.5) !important;
+            background: rgba(255,255,255,.08) !important;
+        }
+
+        /* ══════════════════════════════════════════════
+           GOTHIC THEME  —  Optional B&W overlay
+           ══════════════════════════════════════════════ */
+        @keyframes gothicScan {
+            0%   { background-position: 0 0; }
+            100% { background-position: 0 100vh; }
+        }
+        @keyframes gothicPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,.12), 0 0 20px rgba(255,255,255,.05); }
+            50%       { box-shadow: 0 0 18px rgba(255,255,255,.28), 0 0 40px rgba(255,255,255,.12); }
+        }
+        @keyframes gothicTextPulse {
+            0%, 100% { text-shadow: 0 0 6px rgba(255,255,255,.3); }
+            50%       { text-shadow: 0 0 14px rgba(255,255,255,.7), 0 0 28px rgba(255,255,255,.3); }
+        }
+
+        html.gothic body { background: #000 !important; color: #e8e8e8 !important; }
+        html.gothic body::before { background: none !important; }
+        html.gothic body::after {
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.18) 3px, rgba(0,0,0,.18) 4px),
+                linear-gradient(180deg, rgba(255,255,255,.015) 0%, rgba(0,0,0,0) 50%, rgba(255,255,255,.015) 100%) !important;
+            animation: gothicScan 8s linear infinite !important;
+            pointer-events: none;
+            z-index: 9998 !important;
+        }
+
+        /* Nav */
+        html.gothic .landing-nav {
+            background: rgba(0,0,0,.95) !important;
+            border-bottom-color: rgba(255,255,255,.1) !important;
+            box-shadow: 0 2px 40px rgba(255,255,255,.04) !important;
+        }
+        html.gothic .nav-link { color: rgba(255,255,255,.45) !important; }
+        html.gothic .nav-link:hover { color: #fff !important; background: rgba(255,255,255,.06) !important; text-shadow: 0 0 10px rgba(255,255,255,.5); }
+        html.gothic .nav-link.active { color: #fff !important; background: rgba(255,255,255,.07) !important; text-shadow: 0 0 12px rgba(255,255,255,.7); }
+        html.gothic .gothic-btn { border-color: rgba(255,255,255,.2) !important; color: rgba(255,255,255,.7) !important; }
+        html.gothic .gothic-btn:hover { background: rgba(255,255,255,.1) !important; box-shadow: 0 0 16px rgba(255,255,255,.2); color: #fff !important; }
+
+        /* Buttons */
+        html.gothic .btn-primary {
+            background: rgba(255,255,255,.06) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,.2) !important;
+            box-shadow: none !important;
+            animation: gothicPulse 3s ease-in-out infinite;
+        }
+        html.gothic .btn-primary:hover { background: rgba(255,255,255,.1) !important; box-shadow: 0 0 30px rgba(255,255,255,.2) !important; }
+        html.gothic .btn-ghost { background: rgba(255,255,255,.04) !important; color: rgba(255,255,255,.65) !important; border-color: rgba(255,255,255,.14) !important; box-shadow: none !important; }
+        html.gothic .btn-ghost:hover { color: #fff !important; border-color: rgba(255,255,255,.4) !important; background: rgba(255,255,255,.08) !important; }
+
+        /* Cards */
+        html.gothic .glass-card {
+            background: rgba(255,255,255,.03) !important;
+            border-color: rgba(255,255,255,.1) !important;
+            box-shadow: 0 0 20px rgba(255,255,255,.04) !important;
+        }
+        html.gothic .glass-card:hover { box-shadow: 0 0 30px rgba(255,255,255,.08) !important; }
+        html.gothic .track-card {
+            background: rgba(255,255,255,.03) !important;
+            border-color: rgba(255,255,255,.1) !important;
+            box-shadow: none !important;
+        }
+        html.gothic .track-card:hover { box-shadow: 0 0 24px rgba(255,255,255,.08) !important; transform: translateY(-4px); }
+        html.gothic .track-card.playing { border-color: rgba(255,255,255,.5) !important; box-shadow: 0 0 0 2px rgba(255,255,255,.1), 0 0 30px rgba(255,255,255,.1) !important; }
+
+        /* Cover art */
+        html.gothic .cover-art-placeholder {
+            background: linear-gradient(135deg, #111 0%, #222 50%, #111 100%) !important;
+            filter: grayscale(1);
+        }
+
+        /* Player */
+        html.gothic .player-bar { background: rgba(255,255,255,.12) !important; }
+        html.gothic .player-progress { background: linear-gradient(90deg, #fff, rgba(255,255,255,.6)) !important; }
+        html.gothic .play-btn {
+            background: rgba(255,255,255,.06) !important;
+            border-color: rgba(255,255,255,.15) !important;
+            box-shadow: 0 0 12px rgba(255,255,255,.1) !important;
+        }
+        html.gothic .play-btn:hover { box-shadow: 0 0 20px rgba(255,255,255,.25) !important; }
+        html.gothic .play-btn.active { background: rgba(255,255,255,.15) !important; box-shadow: 0 0 24px rgba(255,255,255,.35) !important; color: #fff !important; }
+
+        /* EQ bars */
+        html.gothic .eq-anim span { background: linear-gradient(to top, #fff, rgba(255,255,255,.6)) !important; }
+
+        /* Tags */
+        html.gothic .tag-genre {
+            background: rgba(255,255,255,.05) !important;
+            border-color: rgba(255,255,255,.15) !important;
+            color: rgba(255,255,255,.7) !important;
+        }
+        html.gothic .tag-ai {
+            background: rgba(255,255,255,.05) !important;
+            border-color: rgba(255,255,255,.15) !important;
+            color: rgba(255,255,255,.7) !important;
+        }
+        html.gothic .badge-video {
+            background: rgba(255,255,255,.05) !important;
+            border-color: rgba(255,255,255,.1) !important;
+            color: rgba(255,255,255,.6) !important;
+        }
+
+        /* Filter buttons */
+        html.gothic .filter-btn {
+            background: rgba(255,255,255,.04) !important;
+            border-color: rgba(255,255,255,.1) !important;
+            color: rgba(255,255,255,.5) !important;
+        }
+        html.gothic .filter-btn:hover { border-color: rgba(255,255,255,.35) !important; color: #fff !important; background: rgba(255,255,255,.07) !important; }
+        html.gothic .filter-btn.active { background: rgba(255,255,255,.1) !important; border-color: rgba(255,255,255,.5) !important; color: #fff !important; box-shadow: 0 0 12px rgba(255,255,255,.15) !important; }
+
+        /* Shimmer text gothic */
+        html.gothic .shimmer-text {
+            background: linear-gradient(90deg, #fff 0%, #fff 40%, rgba(255,255,255,.5) 45%, rgba(255,255,255,.8) 50%, rgba(255,255,255,.5) 55%, #fff 60%, #fff 100%) !important;
+            background-size: 300% 100% !important;
+        }
+
+        /* Modal */
+        html.gothic .modal-overlay { background: rgba(0,0,0,.8) !important; }
+        html.gothic .modal-box {
+            background: rgba(10,10,10,.96) !important;
+            border-color: rgba(255,255,255,.12) !important;
+            box-shadow: 0 0 60px rgba(255,255,255,.08) !important;
+        }
+        html.gothic .modal-box * { color: #e8e8e8; }
+        html.gothic .input-field {
+            background: rgba(255,255,255,.04) !important;
+            border-color: rgba(255,255,255,.14) !important;
+            color: #e8e8e8 !important;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,.6) !important;
+        }
+        html.gothic .input-field::placeholder { color: rgba(255,255,255,.25) !important; }
+        html.gothic .input-field:focus { border-color: rgba(255,255,255,.5) !important; box-shadow: 0 0 0 3px rgba(255,255,255,.08) !important; }
+        html.gothic select.input-field option { background: #111; color: #e8e8e8; }
+        html.gothic .drop-zone-upload {
+            border-color: rgba(255,255,255,.15) !important;
+            background: rgba(255,255,255,.02) !important;
+        }
+        html.gothic .drop-zone-upload:hover, html.gothic .drop-zone-upload.dragover { border-color: rgba(255,255,255,.4) !important; background: rgba(255,255,255,.05) !important; }
+
+        /* Notification */
+        html.gothic .notif {
+            background: rgba(10,10,10,.95) !important;
+            border-color: rgba(255,255,255,.2) !important;
+            color: #e8e8e8 !important;
+            box-shadow: 0 0 24px rgba(255,255,255,.1) !important;
+        }
+
+        /* Footer */
+        html.gothic .site-footer {
+            border-top-color: rgba(255,255,255,.08) !important;
+            background: rgba(0,0,0,.9) !important;
+        }
+        html.gothic .site-footer * { color: rgba(255,255,255,.45) !important; }
+
+        /* Scrollbar */
+        html.gothic ::-webkit-scrollbar-track { background: #111 !important; }
+        html.gothic ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2) !important; }
+
+        /* Tailwind token overrides */
+        html.gothic .text-kx-white  { color: #e8e8e8 !important; }
+        html.gothic .text-kx-pink   { color: rgba(255,255,255,.8) !important; }
+        html.gothic .text-kx-cyan   { color: rgba(255,255,255,.7) !important; }
+        html.gothic .text-kx-muted  { color: rgba(255,255,255,.4) !important; }
+        html.gothic .text-kx-text   { color: rgba(255,255,255,.6) !important; }
+        html.gothic .text-sky-600, html.gothic .text-sky-700, html.gothic .text-sky-800 { color: rgba(255,255,255,.7) !important; }
+        html.gothic .text-slate-500, html.gothic .text-slate-600, html.gothic .text-slate-700 { color: rgba(255,255,255,.45) !important; }
+        html.gothic .bg-sky-50, html.gothic .bg-sky-100 { background: rgba(255,255,255,.05) !important; }
+        html.gothic .border-sky-200 { border-color: rgba(255,255,255,.1) !important; }
+        html.gothic .text-indigo-500, html.gothic .text-indigo-600 { color: rgba(255,255,255,.6) !important; }
     </style>
 </head>
 <body class="antialiased">
@@ -306,9 +495,12 @@
                 <a href="studio.html" class="nav-link">🎛️ Studio</a>
                 <a href="highlights.html" class="nav-link active">🎵 AI Highlights</a>
             </div>
-            <button onclick="openSubmitModal()" class="btn-primary px-5 py-2 text-sm">
-                ＋ Submit Track
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleGothic()" class="gothic-btn" id="gothicToggle" title="Enable Gothic Theme">💀</button>
+                <button onclick="openSubmitModal()" class="btn-primary px-5 py-2 text-sm">
+                    ＋ Submit Track
+                </button>
+            </div>
         </div>
     </div>
 </nav>
@@ -934,6 +1126,28 @@ const observer = new IntersectionObserver(entries => {
 }, { threshold: 0.1 });
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Gothic theme ──────────────────────────────────
+function toggleGothic() {
+    const html = document.documentElement;
+    const btn  = document.getElementById('gothicToggle');
+    const isOn = html.classList.toggle('gothic');
+    if (btn) {
+        btn.classList.toggle('gothic-active', isOn);
+        btn.title = isOn ? 'Disable Gothic Theme' : 'Enable Gothic Theme';
+    }
+    localStorage.setItem('kx-gothic', isOn ? 'on' : 'off');
+}
+// Restore gothic state
+(function() {
+    if (localStorage.getItem('kx-gothic') === 'on') {
+        document.documentElement.classList.add('gothic');
+        setTimeout(() => {
+            const btn = document.getElementById('gothicToggle');
+            if (btn) { btn.classList.add('gothic-active'); btn.title = 'Disable Gothic Theme'; }
+        }, 100);
+    }
+})();
 
 // ── Init ──────────────────────────────────────────
 loadTracks();
