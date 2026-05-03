@@ -944,6 +944,35 @@
         html.dark .hero-glitch::before { color: rgba(34,211,238,0.3); }
         html.dark .hero-glitch::after { color: rgba(244,63,94,0.3); }
 
+        /* ─── Live Monitor ─── */
+        #liveMonitor {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid rgba(34,211,238,.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.9;
+            box-shadow: 0 0 20px rgba(34,211,238,.08), inset 0 1px 0 rgba(255,255,255,.05);
+            position: relative;
+            overflow: hidden;
+        }
+        #liveMonitor::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #f43f5e, #8b5cf6, #22d3ee);
+        }
+        .mon-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: #94a3b8; }
+        .mon-on  { color: #22d3ee; font-weight: 700; min-width: 36px; }
+        .mon-off { color: #475569; font-weight: 700; min-width: 36px; }
+        .mon-val { color: #e2e8f0; min-width: 40px; display: inline-block; }
+        .mon-bar-wrap { display: inline-block; width: 48px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; vertical-align: middle; overflow: hidden; }
+        .mon-bar { display: block; height: 100%; border-radius: 3px; transition: width .12s ease; }
+        .mon-label { color: #38bdf8; font-size: 10px; letter-spacing: .08em; font-weight: 600; }
+        #liveMonitorToggle { cursor: pointer; user-select: none; }
+
         /* ─── Theme Toggle Button ─── */
         .theme-toggle {
             background: linear-gradient(145deg, #ffffff, #f1f5f9);
@@ -1535,7 +1564,23 @@
                     <h4 class="font-display font-bold text-base text-kx-pink mb-3 flex items-center gap-2">
                         🎛️ EFFECTS RACK
                         <span class="text-[10px] text-kx-text font-body ml-auto font-normal">Toggle effects with the switches</span>
+                        <button id="liveMonitorToggle" onclick="toggleLiveMonitor()" class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border border-kx-cyan/30 text-kx-cyan hover:bg-kx-cyan/10 transition ml-2" title="Show/hide live monitor">📊 MONITOR</button>
                     </h4>
+
+                    <!-- Live Monitor -->
+                    <div id="liveMonitor" class="hidden mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="mon-label">⬛ LIVE MONITOR</span>
+                            <span class="text-[9px] text-slate-500 font-mono">real-time parameter readout</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0.5">
+                            <div class="mon-row" id="mon-eq">EQ —</div>
+                            <div class="mon-row" id="mon-comp">COMP —</div>
+                            <div class="mon-row" id="mon-reverb">VERB —</div>
+                            <div class="mon-row" id="mon-dist">DIST —</div>
+                            <div class="mon-row md:col-span-2" id="mon-stereo">WIDE —</div>
+                        </div>
+                    </div>
                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <!-- EQ -->
                         <div class="glass rounded-xl p-4 effect-panel" id="eq-panel" draggable="true">
@@ -3361,6 +3406,13 @@ let convolver = null, reverbGain = null, dryGain = null;
 let waveshaper = null;
 let stereoPanner = null;
 
+// Permanent bypass chain nodes (enable seamless toggle without audio interruption)
+let chainInputNode = null;
+let eqWetGain = null, eqDryGain = null, eqMixNode = null;
+let compWetGain = null, compDryGain = null, compMixNode = null;
+let distWetGain = null, distDryGain = null, distMixNode = null;
+let rvbDryGain2 = null, rvbWetGain2 = null, rvbMixNode = null;
+
 let effectsState = {
     eq: { enabled: true, low: 0, mid: 0, high: 0 },
     compressor: { enabled: false, threshold: -24, ratio: 4 },
@@ -3407,6 +3459,57 @@ function createEffectNodes() {
 
     stereoPanner = audioContext.createStereoPanner();
     stereoPanner.pan.value = 0;
+
+    // Bypass chain nodes
+    chainInputNode = audioContext.createGain(); chainInputNode.gain.value = 1;
+
+    eqWetGain  = audioContext.createGain(); eqWetGain.gain.value  = 1; // EQ ON by default
+    eqDryGain  = audioContext.createGain(); eqDryGain.gain.value  = 0;
+    eqMixNode  = audioContext.createGain(); eqMixNode.gain.value  = 1;
+
+    compWetGain  = audioContext.createGain(); compWetGain.gain.value  = 0; // comp OFF
+    compDryGain  = audioContext.createGain(); compDryGain.gain.value  = 1;
+    compMixNode  = audioContext.createGain(); compMixNode.gain.value  = 1;
+
+    distWetGain  = audioContext.createGain(); distWetGain.gain.value  = 0; // dist OFF
+    distDryGain  = audioContext.createGain(); distDryGain.gain.value  = 1;
+    distMixNode  = audioContext.createGain(); distMixNode.gain.value  = 1;
+
+    rvbDryGain2  = audioContext.createGain(); rvbDryGain2.gain.value  = 1; // reverb OFF — full dry
+    rvbWetGain2  = audioContext.createGain(); rvbWetGain2.gain.value  = 0;
+    rvbMixNode   = audioContext.createGain(); rvbMixNode.gain.value   = 1;
+
+    buildPermanentChain();
+}
+
+function buildPermanentChain() {
+    // EQ bypass
+    chainInputNode.connect(eqWetGain);
+    chainInputNode.connect(eqDryGain);
+    eqWetGain.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); eqHigh.connect(eqMixNode);
+    eqDryGain.connect(eqMixNode);
+
+    // Compressor bypass
+    eqMixNode.connect(compWetGain);
+    eqMixNode.connect(compDryGain);
+    compWetGain.connect(compressorNode); compressorNode.connect(compMixNode);
+    compDryGain.connect(compMixNode);
+
+    // Distortion bypass
+    compMixNode.connect(distWetGain);
+    compMixNode.connect(distDryGain);
+    distWetGain.connect(waveshaper); waveshaper.connect(distMixNode);
+    distDryGain.connect(distMixNode);
+
+    // Reverb wet/dry
+    distMixNode.connect(rvbDryGain2); rvbDryGain2.connect(rvbMixNode);
+    distMixNode.connect(convolver);   convolver.connect(rvbWetGain2); rvbWetGain2.connect(rvbMixNode);
+
+    // Stereo → Master → Analyser → Output
+    rvbMixNode.connect(stereoPanner);
+    stereoPanner.connect(masterGain);
+    masterGain.connect(analyser);
+    analyser.connect(audioContext.destination);
 }
 
 function createImpulseResponse(duration, decay) {
@@ -3433,6 +3536,34 @@ function makeDistortionCurve(amount) {
     return curve;
 }
 
+// Ramp bypass gains — no audio interruption
+function setEffectBypass(name, isOn) {
+    if (!audioContext) return;
+    const t = audioContext.currentTime;
+    const r = 0.02; // 20 ms ramp avoids click
+    switch (name) {
+        case 'eq':
+            eqWetGain.gain.linearRampToValueAtTime(isOn ? 1 : 0, t + r);
+            eqDryGain.gain.linearRampToValueAtTime(isOn ? 0 : 1, t + r);
+            break;
+        case 'compressor':
+            compWetGain.gain.linearRampToValueAtTime(isOn ? 1 : 0, t + r);
+            compDryGain.gain.linearRampToValueAtTime(isOn ? 0 : 1, t + r);
+            break;
+        case 'distortion':
+            distWetGain.gain.linearRampToValueAtTime(isOn ? 1 : 0, t + r);
+            distDryGain.gain.linearRampToValueAtTime(isOn ? 0 : 1, t + r);
+            break;
+        case 'reverb':
+            rvbWetGain2.gain.linearRampToValueAtTime(isOn ? effectsState.reverb.mix / 100 : 0, t + r);
+            rvbDryGain2.gain.linearRampToValueAtTime(isOn ? 1 - effectsState.reverb.mix / 100 : 1, t + r);
+            break;
+        case 'stereo':
+            stereoPanner.pan.linearRampToValueAtTime(isOn ? (effectsState.stereo.width - 100) / 100 : 0, t + r);
+            break;
+    }
+}
+
 // Toggle Effect UI
 function toggleEffectUI(name) {
     const toggle = document.getElementById(name === 'compressor' ? 'compToggle' :
@@ -3443,12 +3574,13 @@ function toggleEffectUI(name) {
     const isOn = toggle.classList.toggle('on');
     if (effectsState[name]) effectsState[name].enabled = isOn;
 
-    // Update indicator
     const indMap = { eq: 'eq-indicator', compressor: 'comp-indicator', reverb: 'reverb-indicator', distortion: 'dist-indicator', stereo: 'stereo-indicator' };
     const ind = document.getElementById(indMap[name]);
     if (ind) ind.className = `w-1.5 h-1.5 rounded-full ${isOn ? 'bg-kx-pink' : 'bg-kx-muted'}`;
 
-    if (isPlaying) { pauseAudio(); playAudio(); }
+    // Apply via gain ramp — music never stops
+    if (chainInputNode) setEffectBypass(name, isOn);
+    updateMonitor();
 }
 
 // File Upload
@@ -3503,6 +3635,7 @@ function _processAudioFileValidated(file) {
                     `${buffer.sampleRate/1000}kHz | ${buffer.numberOfChannels === 1 ? 'Mono' : 'Stereo'} | ${formatTime(buffer.duration)}`;
                 document.getElementById('totalTime').textContent = formatTime(buffer.duration);
                 drawWaveform(buffer);
+                updateMonitor();
                 showNotification('Audio loaded! 🎵');
             },
             () => showNotification('Error decoding audio', 'error')
@@ -3597,33 +3730,8 @@ function resetAudio() {
 }
 
 function connectSourceToChain(source) {
-    if (!audioContext) return;
-    let node = source;
-    if (effectsState.eq.enabled) {
-        node.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); node = eqHigh;
-    }
-    if (effectsState.compressor.enabled) { node.connect(compressorNode); node = compressorNode; }
-    if (effectsState.distortion.enabled && effectsState.distortion.amount > 0) {
-        const dg = audioContext.createGain(); dg.gain.value = effectsState.distortion.amount / 100;
-        const bg = audioContext.createGain(); bg.gain.value = 1 - effectsState.distortion.amount / 100;
-        const mg = audioContext.createGain();
-        node.connect(dg); dg.connect(waveshaper); waveshaper.connect(mg);
-        node.connect(bg); bg.connect(mg); node = mg;
-    }
-    if (effectsState.reverb.enabled) {
-        const ri = audioContext.createGain(); ri.gain.value = 1; node.connect(ri);
-        const dg = audioContext.createGain(); dg.gain.value = 1 - effectsState.reverb.mix / 100;
-        const wg = audioContext.createGain(); wg.gain.value = effectsState.reverb.mix / 100;
-        ri.connect(dg); ri.connect(convolver); convolver.connect(wg);
-        const mg = audioContext.createGain(); dg.connect(mg); wg.connect(mg); node = mg;
-    }
-    if (effectsState.stereo.enabled) {
-        stereoPanner.pan.value = (effectsState.stereo.width - 100) / 100;
-        node.connect(stereoPanner); node = stereoPanner;
-    }
-    node.connect(masterGain);
-    masterGain.connect(analyser);
-    analyser.connect(audioContext.destination);
+    if (!audioContext || !chainInputNode) return;
+    source.connect(chainInputNode);
 }
 
 let timeDisplayRafId = null;
@@ -3666,6 +3774,7 @@ function updateEQ(band, value) {
     if (band === 'low' && eqLow) eqLow.gain.value = value;
     if (band === 'mid' && eqMid) eqMid.gain.value = value;
     if (band === 'high' && eqHigh) eqHigh.gain.value = value;
+    updateMonitor();
 }
 
 function updateCompressor(param, value) {
@@ -3682,6 +3791,7 @@ function updateCompressor(param, value) {
         const r = compressorNode.reduction;
         document.getElementById('gainReduction').style.width = Math.min(100, Math.abs(r) * 3) + '%';
     }
+    updateMonitor();
 }
 
 function updateReverb(param, value) {
@@ -3695,9 +3805,19 @@ function updateReverb(param, value) {
         }, 150);
     } else if (param === 'mix') {
         document.getElementById('reverbMixVal').textContent = value + '%';
+        if (effectsState.reverb.enabled && rvbWetGain2 && rvbDryGain2) {
+            rvbWetGain2.gain.value = value / 100;
+            rvbDryGain2.gain.value = 1 - value / 100;
+        }
     } else if (param === 'damping') {
         document.getElementById('dampingVal').textContent = value + '%';
+        if (window._rvTimeout) clearTimeout(window._rvTimeout);
+        window._rvTimeout = setTimeout(() => {
+            if (audioContext && convolver)
+                convolver.buffer = createImpulseResponse(effectsState.reverb.size / 25, value / 50 + 0.5);
+        }, 150);
     }
+    updateMonitor();
 }
 
 function updateDistortion(param, value) {
@@ -3709,19 +3829,72 @@ function updateDistortion(param, value) {
     } else if (param === 'tone') {
         document.getElementById('distToneVal').textContent = value + '%';
     }
+    updateMonitor();
 }
 
 function updateStereo(param, value) {
     value = parseFloat(value);
     effectsState.stereo[param] = value;
     document.getElementById('widthVal').textContent = value + '%';
-    if (stereoPanner) stereoPanner.pan.value = (value - 100) / 100;
+    if (stereoPanner && effectsState.stereo.enabled) stereoPanner.pan.value = (value - 100) / 100;
+    updateMonitor();
 }
 
 function updateOutputGain(value) {
     value = parseFloat(value);
     document.getElementById('outputGainVal').textContent = (value > 0 ? '+' : '') + value + 'dB';
     if (masterGain) masterGain.gain.value = Math.pow(10, value / 20);
+    updateMonitor();
+}
+
+// ── Live Monitor ──────────────────────────────────────
+function toggleLiveMonitor() {
+    const mon = document.getElementById('liveMonitor');
+    const btn = document.getElementById('liveMonitorToggle');
+    if (!mon) return;
+    const visible = mon.classList.toggle('hidden');
+    if (btn) btn.textContent = visible ? '📊 MONITOR' : '📊 HIDE';
+    if (!visible) updateMonitor();
+}
+
+function updateMonitor() {
+    const mon = document.getElementById('liveMonitor');
+    if (!mon || mon.classList.contains('hidden')) return;
+
+    const s = effectsState;
+    const on = v => `<span class="mon-on">${v}</span>`;
+    const off = v => `<span class="mon-off">${v}</span>`;
+    const tag = (enabled, label) => enabled ? on(label) : off(label);
+    const bar = (val, max, color) => {
+        const pct = Math.round(Math.abs(val) / max * 100);
+        return `<span class="mon-bar-wrap"><span class="mon-bar" style="width:${pct}%;background:${color}"></span></span>`;
+    };
+    const dbBar = v => bar(v, 12, v > 0 ? '#f43f5e' : '#22d3ee');
+
+    document.getElementById('mon-eq').innerHTML =
+        `${tag(s.eq.enabled,'EQ')} &nbsp;` +
+        `L&nbsp;${dbBar(s.eq.low)}<span class="mon-val">${s.eq.low > 0 ? '+' : ''}${s.eq.low}dB</span> ` +
+        `M&nbsp;${dbBar(s.eq.mid)}<span class="mon-val">${s.eq.mid > 0 ? '+' : ''}${s.eq.mid}dB</span> ` +
+        `H&nbsp;${dbBar(s.eq.high)}<span class="mon-val">${s.eq.high > 0 ? '+' : ''}${s.eq.high}dB</span>`;
+
+    document.getElementById('mon-comp').innerHTML =
+        `${tag(s.compressor.enabled,'COMP')} &nbsp;` +
+        `THR&nbsp;<span class="mon-val">${s.compressor.threshold}dB</span> ` +
+        `RATIO&nbsp;<span class="mon-val">${s.compressor.ratio}:1</span>`;
+
+    document.getElementById('mon-reverb').innerHTML =
+        `${tag(s.reverb.enabled,'VERB')} &nbsp;` +
+        `ROOM&nbsp;${bar(s.reverb.size, 100, '#8b5cf6')}<span class="mon-val">${s.reverb.size}%</span> ` +
+        `MIX&nbsp;${bar(s.reverb.mix, 100, '#6366f1')}<span class="mon-val">${s.reverb.mix}%</span>`;
+
+    document.getElementById('mon-dist').innerHTML =
+        `${tag(s.distortion.enabled,'DIST')} &nbsp;` +
+        `AMT&nbsp;${bar(s.distortion.amount, 100, '#f43f5e')}<span class="mon-val">${s.distortion.amount}%</span> ` +
+        `TONE&nbsp;${bar(s.distortion.tone, 100, '#fb923c')}<span class="mon-val">${s.distortion.tone}%</span>`;
+
+    document.getElementById('mon-stereo').innerHTML =
+        `${tag(s.stereo.enabled,'WIDE')} &nbsp;` +
+        `WIDTH&nbsp;${bar(s.stereo.width, 200, '#22d3ee')}<span class="mon-val">${s.stereo.width}%</span>`;
 }
 
 // Export / Process
