@@ -247,10 +247,9 @@
             border: 2px dashed #bae6fd; border-radius: 14px;
             padding: 24px; text-align: center; cursor: pointer;
             transition: all .2s; background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
-            position: relative;
         }
         .drop-zone-upload:hover, .drop-zone-upload.dragover { border-color: #38bdf8; background: rgba(56,189,248,.06); }
-        .drop-zone-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .drop-zone-upload input[type="file"] { display: none; }
 
         /* Cover art preview in modal */
         #coverPreviewWrap { display: none; }
@@ -403,9 +402,9 @@
         <!-- Cover Art Upload -->
         <div class="mb-5">
             <label class="block text-xs font-mono uppercase tracking-wider text-kx-muted mb-2">Cover Art <span class="text-kx-muted normal-case font-normal font-body">(optional — JPG, PNG, WebP)</span></label>
-            <div class="drop-zone-upload" id="coverDropZone">
+            <div class="drop-zone-upload" id="coverDropZone" onclick="document.getElementById('coverInput').click()" ondragover="dzDragOver(event,this)" ondragleave="dzDragLeave(this)" ondrop="dzDrop(event,'cover')">
                 <input type="file" id="coverInput" accept="image/jpeg,image/png,image/webp,image/gif" onchange="handleCoverSelect(this)">
-                <div id="coverDropContent">
+                <div id="coverDropContent" style="pointer-events:none">
                     <div class="text-3xl mb-2">🖼️</div>
                     <p class="text-kx-text text-sm font-medium">Drop image here or click to browse</p>
                     <p class="text-kx-muted text-xs mt-1">JPG, PNG, WebP up to 5MB</p>
@@ -422,9 +421,9 @@
         <!-- Audio / Video Upload -->
         <div class="mb-5">
             <label class="block text-xs font-mono uppercase tracking-wider text-kx-muted mb-2">Audio or Video File <span class="text-red-400">*</span></label>
-            <div class="drop-zone-upload" id="audioDropZone">
+            <div class="drop-zone-upload" id="audioDropZone" onclick="document.getElementById('audioInput').click()" ondragover="dzDragOver(event,this)" ondragleave="dzDragLeave(this)" ondrop="dzDrop(event,'audio')">
                 <input type="file" id="audioInput" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/flac,video/mp4,video/webm,audio/*,video/*" onchange="handleAudioSelect(this)">
-                <div id="audioDropContent">
+                <div id="audioDropContent" style="pointer-events:none">
                     <div class="text-3xl mb-2">🎵</div>
                     <p class="text-kx-text text-sm font-medium">Drop MP3 / MP4 here or click to browse</p>
                     <p class="text-kx-muted text-xs mt-1">MP3, WAV, OGG, FLAC, MP4, WebM up to 50MB</p>
@@ -509,7 +508,8 @@
 <!-- ══ JAVASCRIPT ════════════════════════════════ -->
 <script>
 // ── State ─────────────────────────────────────────
-let tracks = [];
+let tracks = [];          // metadata only (no blobs)
+let blobUrls = {};        // id → objectURL, created on first play
 let totalPlays = 0;
 let currentAudio = null;
 let currentTrackId = null;
@@ -517,19 +517,64 @@ let selectedAudioFile = null;
 let selectedCoverFile = null;
 let activeFilter = 'all';
 
-const STORAGE_KEY = 'kx_highlights_tracks';
-const PLAYS_KEY   = 'kx_highlights_plays';
+// ── IndexedDB (handles large files — no localStorage size limit) ──────
+const DB_NAME = 'kx_highlights_v1';
+let db = null;
 
-// ── Load from localStorage ─────────────────────────
-function loadTracks() {
-    try { tracks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { tracks = []; }
-    try { totalPlays = parseInt(localStorage.getItem(PLAYS_KEY) || '0'); } catch { totalPlays = 0; }
-    renderAll();
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (db) { resolve(db); return; }
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = e => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains('tracks'))
+                d.createObjectStore('tracks', { keyPath: 'id' });
+        };
+        req.onsuccess  = e => { db = e.target.result; resolve(db); };
+        req.onerror    = e => reject(e.target.error);
+    });
 }
 
-function saveTracks() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks));
-    localStorage.setItem(PLAYS_KEY, String(totalPlays));
+function dbPut(track) {
+    return openDB().then(d => new Promise((resolve, reject) => {
+        const tx = d.transaction('tracks', 'readwrite');
+        tx.objectStore('tracks').put(track);
+        tx.oncomplete = resolve;
+        tx.onerror    = e => reject(e.target.error);
+    }));
+}
+
+function dbGetAll() {
+    return openDB().then(d => new Promise((resolve, reject) => {
+        const tx  = d.transaction('tracks', 'readonly');
+        const req = tx.objectStore('tracks').getAll();
+        req.onsuccess = e => resolve(e.target.result || []);
+        req.onerror   = e => reject(e.target.error);
+    }));
+}
+
+function dbDelete(id) {
+    return openDB().then(d => new Promise((resolve, reject) => {
+        const tx = d.transaction('tracks', 'readwrite');
+        tx.objectStore('tracks').delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror    = e => reject(e.target.error);
+    }));
+}
+
+// ── Load ──────────────────────────────────────────
+function loadTracks() {
+    dbGetAll().then(rows => {
+        // Sort newest first, separate metadata from audio blob
+        tracks = rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+        totalPlays = tracks.reduce((s, t) => s + (t.plays || 0), 0);
+        renderAll();
+    }).catch(() => { tracks = []; renderAll(); });
+}
+
+function saveMeta(track) {
+    // Store track including its audioBlob (IndexedDB stores Blobs natively)
+    return dbPut(track);
 }
 
 // ── Render ────────────────────────────────────────
@@ -604,7 +649,7 @@ function buildTrackCard(track) {
                     </div>
                     <div class="flex justify-between text-[10px] text-kx-muted font-mono mt-0.5">
                         <span id="cur-${track.id}">0:00</span>
-                        <span class="text-xs text-kx-muted">${track.plays || 0} plays</span>
+                        <span class="text-xs text-kx-muted" data-plays>${track.plays || 0} plays</span>
                     </div>
                 </div>
             </div>
@@ -619,78 +664,71 @@ function buildTrackCard(track) {
 // ── Playback ──────────────────────────────────────
 function toggleTrack(id) {
     const track = tracks.find(t => t.id === id);
-    if (!track || !track.audioDataUrl) { showNotif('No audio data for this track', 'error'); return; }
+    if (!track) return;
 
-    // Stop current
+    // Resume/pause if already loaded
     if (currentAudio && currentTrackId === id) {
-        if (currentAudio.paused) {
-            currentAudio.play();
-            setPlaying(id, true);
-        } else {
-            currentAudio.pause();
-            setPlaying(id, false);
-        }
+        if (currentAudio.paused) { currentAudio.play(); setPlaying(id, true); }
+        else                     { currentAudio.pause(); setPlaying(id, false); }
         return;
     }
 
     stopCurrent();
 
-    currentAudio = new Audio(track.audioDataUrl);
-    currentTrackId = id;
+    // Get or create an object URL from the stored Blob
+    if (!blobUrls[id]) {
+        if (!track.audioBlob) { showNotif('Audio not found — please re-upload', 'error'); return; }
+        blobUrls[id] = URL.createObjectURL(track.audioBlob);
+    }
+
+    currentAudio    = new Audio(blobUrls[id]);
+    currentTrackId  = id;
 
     currentAudio.addEventListener('loadedmetadata', () => {
-        const dur = currentAudio.duration;
         const el = document.getElementById('dur-' + id);
-        if (el) el.textContent = fmtTime(dur);
+        if (el) el.textContent = fmtTime(currentAudio.duration);
     });
 
     currentAudio.addEventListener('timeupdate', () => {
         const prog = document.getElementById('prog-' + id);
-        const cur  = document.getElementById('cur-' + id);
+        const cur  = document.getElementById('cur-'  + id);
         if (!currentAudio) return;
         const pct = (currentAudio.currentTime / currentAudio.duration) * 100 || 0;
-        if (prog) prog.style.width = pct + '%';
-        if (cur)  cur.textContent  = fmtTime(currentAudio.currentTime);
+        if (prog) prog.style.width   = pct + '%';
+        if (cur)  cur.textContent    = fmtTime(currentAudio.currentTime);
     });
 
-    currentAudio.addEventListener('ended', () => {
-        stopCurrent();
-    });
+    currentAudio.addEventListener('ended', stopCurrent);
 
     currentAudio.play().catch(() => showNotif('Could not play audio', 'error'));
     setPlaying(id, true);
 
-    // Increment play count
+    // Persist incremented play count
     track.plays = (track.plays || 0) + 1;
     totalPlays++;
-    saveTracks();
     updateStats();
-    const playsEl = document.querySelector(`#card-${id} .text-kx-muted.text-xs.font-mono`);
-    // re-render just the plays label is complex; full re-render on end is fine
+    saveMeta(track);
+    const playsEl = document.querySelector(`#card-${id} [data-plays]`);
+    if (playsEl) playsEl.textContent = track.plays + ' plays';
 }
 
 function stopCurrent() {
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = '';
-        currentAudio = null;
-    }
+    if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
     if (currentTrackId) setPlaying(currentTrackId, false);
     currentTrackId = null;
 }
 
-function setPlaying(id, playing) {
+function setPlaying(id, on) {
     const btn  = document.getElementById('play-' + id);
     const card = document.getElementById('card-' + id);
-    const eq   = document.getElementById('eq-' + id);
-    if (btn)  { btn.textContent = playing ? '⏸' : '▶'; btn.classList.toggle('active', playing); }
-    if (card) card.classList.toggle('playing', playing);
-    if (eq)   eq.classList.toggle('hidden', !playing);
+    const eq   = document.getElementById('eq-'   + id);
+    if (btn)  { btn.textContent = on ? '⏸' : '▶'; btn.classList.toggle('active', on); }
+    if (card) card.classList.toggle('playing', on);
+    if (eq)   eq.classList.toggle('hidden', !on);
 }
 
 function seekTrack(e, id) {
-    const track = tracks.find(t => t.id === id);
-    if (!track || !currentAudio || currentTrackId !== id) return;
+    if (!currentAudio || currentTrackId !== id) return;
     const bar  = document.getElementById('bar-' + id);
     const rect = bar.getBoundingClientRect();
     const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -785,60 +823,87 @@ function submitTrack() {
     const desc   = document.getElementById('trackDesc').value.trim();
     const artist = document.getElementById('trackArtist').value.trim();
 
-    if (!title) { showNotif('Please enter a track title', 'error'); return; }
+    if (!title)             { showNotif('Please enter a track title', 'error'); return; }
     if (!selectedAudioFile) { showNotif('Please upload an audio or video file', 'error'); return; }
 
-    showNotif('Uploading track…');
+    showNotif('Saving track…');
 
-    // Read audio/video
-    const readAudio = new Promise(resolve => {
-        const r = new FileReader();
-        r.onload = e => resolve(e.target.result);
-        r.readAsDataURL(selectedAudioFile);
-    });
-
-    // Read cover (optional)
+    // Cover art → DataURL (small, fine for IDB)
     const readCover = selectedCoverFile
         ? new Promise(resolve => { const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(selectedCoverFile); })
         : Promise.resolve(null);
 
-    Promise.all([readAudio, readCover]).then(([audioUrl, coverUrl]) => {
+    readCover.then(coverUrl => {
+        const id    = Date.now().toString();
         const track = {
-            id: Date.now().toString(),
-            title, genre, aiTool, description: desc,
-            artist: artist || 'Anonymous',
-            audioDataUrl: audioUrl,
+            id, title, genre, aiTool,
+            description: desc,
+            artist:      artist || 'Anonymous',
+            audioBlob:   selectedAudioFile,   // stored natively in IndexedDB
             coverDataUrl: coverUrl,
-            fileType: selectedAudioFile.type,
-            emoji: GENRE_EMOJIS[genre] || '🎵',
-            plays: 0,
-            date: new Date().toISOString()
+            fileType:    selectedAudioFile.type,
+            emoji:       GENRE_EMOJIS[genre] || '🎵',
+            plays:       0,
+            date:        new Date().toISOString()
         };
 
-        tracks.unshift(track);
-        saveTracks();
+        saveMeta(track).then(() => {
+            tracks.unshift(track);
+            totalPlays = tracks.reduce((s, t) => s + (t.plays || 0), 0);
 
-        // Reset form
-        document.getElementById('trackTitle').value = '';
-        document.getElementById('trackDesc').value = '';
-        document.getElementById('trackArtist').value = '';
-        clearCover(); clearAudio();
-        document.getElementById('submitModal').classList.add('hidden');
-        document.body.style.overflow = '';
+            // Reset form
+            document.getElementById('trackTitle').value = '';
+            document.getElementById('trackDesc').value  = '';
+            document.getElementById('trackArtist').value = '';
+            clearCover(); clearAudio();
+            document.getElementById('submitModal').classList.add('hidden');
+            document.body.style.overflow = '';
 
-        renderAll();
-        showNotif('Track published! 🎵✨');
-    }).catch(() => showNotif('Error reading files. Try smaller files.', 'error'));
+            renderAll();
+            showNotif('Track published! 🎵✨');
+        }).catch(() => showNotif('Save failed — storage error', 'error'));
+    });
 }
 
 // ── Delete ────────────────────────────────────────
 function deleteTrack(id) {
     if (!confirm('Remove this track?')) return;
     if (currentTrackId === id) stopCurrent();
-    tracks = tracks.filter(t => t.id !== id);
-    saveTracks();
-    renderAll();
-    showNotif('Track removed');
+    if (blobUrls[id]) { URL.revokeObjectURL(blobUrls[id]); delete blobUrls[id]; }
+    dbDelete(id).then(() => {
+        tracks = tracks.filter(t => t.id !== id);
+        totalPlays = tracks.reduce((s, t) => s + (t.plays || 0), 0);
+        renderAll();
+        showNotif('Track removed');
+    });
+}
+
+// ── Drag-and-drop helpers ─────────────────────────
+function dzDragOver(e, el) {
+    e.preventDefault(); e.stopPropagation();
+    el.classList.add('dragover');
+}
+function dzDragLeave(el) {
+    el.classList.remove('dragover');
+}
+function dzDrop(e, type) {
+    e.preventDefault(); e.stopPropagation();
+    const el   = type === 'cover' ? document.getElementById('coverDropZone') : document.getElementById('audioDropZone');
+    el.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (type === 'cover') {
+        // Manually set the file input and fire handler
+        const dt = new DataTransfer(); dt.items.add(file);
+        const inp = document.getElementById('coverInput');
+        inp.files = dt.files;
+        handleCoverSelect(inp);
+    } else {
+        const dt = new DataTransfer(); dt.items.add(file);
+        const inp = document.getElementById('audioInput');
+        inp.files = dt.files;
+        handleAudioSelect(inp);
+    }
 }
 
 // ── Escape key closes modal ──────────────────────
