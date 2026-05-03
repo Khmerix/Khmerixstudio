@@ -944,6 +944,346 @@
         html.dark .hero-glitch::before { color: rgba(34,211,238,0.3); }
         html.dark .hero-glitch::after { color: rgba(244,63,94,0.3); }
 
+        /* ══════════════════════════════════════════
+           GOTHIC THEME — Dev Favourite
+           Black & White · Glowing White Light
+           ══════════════════════════════════════════ */
+        @keyframes gothicPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,.12), 0 0 20px rgba(255,255,255,.05); }
+            50%       { box-shadow: 0 0 18px rgba(255,255,255,.28), 0 0 40px rgba(255,255,255,.12); }
+        }
+        @keyframes gothicTextPulse {
+            0%, 100% { text-shadow: 0 0 6px rgba(255,255,255,.3); }
+            50%       { text-shadow: 0 0 14px rgba(255,255,255,.7), 0 0 28px rgba(255,255,255,.3); }
+        }
+        @keyframes gothicScan {
+            0%   { background-position: 0 0; }
+            100% { background-position: 0 100vh; }
+        }
+
+        html.gothic body {
+            background: #000;
+            color: #e8e8e8;
+        }
+        /* Scanline CRT overlay */
+        html.gothic body::before {
+            background: none;
+        }
+        html.gothic body::after {
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(0,0,0,.18) 3px,
+                    rgba(0,0,0,.18) 4px
+                ),
+                linear-gradient(180deg, rgba(255,255,255,.015) 0%, rgba(0,0,0,0) 50%, rgba(255,255,255,.015) 100%);
+            animation: gothicScan 8s linear infinite;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        html.gothic #bgArtCanvas { opacity: .06; filter: invert(1) saturate(0); }
+
+        /* Navigation */
+        html.gothic nav.glass {
+            background: rgba(0,0,0,.95) !important;
+            border-bottom-color: rgba(255,255,255,.1) !important;
+            box-shadow: 0 2px 40px rgba(255,255,255,.04) !important;
+        }
+        html.gothic .nav-tab { color: rgba(255,255,255,.4); }
+        html.gothic .nav-tab:hover {
+            color: #fff;
+            background: rgba(255,255,255,.06);
+            text-shadow: 0 0 10px rgba(255,255,255,.5);
+        }
+        html.gothic .nav-tab.active {
+            color: #fff;
+            background: rgba(255,255,255,.07);
+            border-color: rgba(255,255,255,.3);
+            text-shadow: 0 0 12px rgba(255,255,255,.7);
+        }
+        html.gothic .btn-action {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.14);
+            color: rgba(255,255,255,.55);
+        }
+        html.gothic .btn-action:hover {
+            border-color: rgba(255,255,255,.45);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(255,255,255,.15);
+        }
+        html.gothic .theme-toggle, html.gothic #gothicToggle {
+            background: rgba(255,255,255,.05);
+            border-color: rgba(255,255,255,.15);
+            color: rgba(255,255,255,.7);
+        }
+        html.gothic .theme-toggle:hover, html.gothic #gothicToggle:hover {
+            background: rgba(255,255,255,.1);
+            box-shadow: 0 0 16px rgba(255,255,255,.2);
+            color: #fff;
+        }
+        #gothicToggle.gothic-active, #gothicToggleMobile.gothic-active {
+            box-shadow: 0 0 14px rgba(255,255,255,.35), 0 0 30px rgba(255,255,255,.12);
+            border-color: rgba(255,255,255,.5) !important;
+            background: rgba(255,255,255,.08) !important;
+        }
+
+        /* Glass panels */
+        html.gothic .glass {
+            background: rgba(255,255,255,.025);
+            border-color: rgba(255,255,255,.1);
+            box-shadow: 0 4px 24px rgba(255,255,255,.03);
+        }
+
+        /* Hero title */
+        html.gothic .hero-shimmer {
+            background: linear-gradient(90deg,
+                #fff 0%, #fff 40%,
+                rgba(255,255,255,.3) 45%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.3) 55%,
+                #fff 60%, #fff 100%);
+            background-size: 300% 100%;
+            -webkit-background-clip: text; background-clip: text;
+            animation: heroShimmer 4s ease-in-out infinite;
+        }
+        html.gothic .hero-glitch::before { color: rgba(255,255,255,.15); }
+        html.gothic .hero-glitch::after  { color: rgba(255,255,255,.08); }
+
+        /* Inputs */
+        html.gothic .input-kx {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.14);
+            color: #e8e8e8;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,.6);
+        }
+        html.gothic .input-kx::placeholder { color: rgba(255,255,255,.25); }
+        html.gothic .input-kx:focus {
+            border-color: rgba(255,255,255,.5);
+            box-shadow: 0 0 0 3px rgba(255,255,255,.08), 0 0 20px rgba(255,255,255,.1);
+        }
+        html.gothic select.input-kx option { background: #111; color: #e8e8e8; }
+
+        /* Range sliders */
+        html.gothic input[type="range"]::-webkit-slider-track {
+            background: rgba(255,255,255,.15);
+        }
+        html.gothic input[type="range"]::-webkit-slider-thumb {
+            background: #fff;
+            border-color: #000;
+            box-shadow: 0 0 12px rgba(255,255,255,.7), 0 0 24px rgba(255,255,255,.3);
+        }
+        html.gothic input[type="range"]::-moz-range-track { background: rgba(255,255,255,.15); }
+        html.gothic input[type="range"]::-moz-range-thumb {
+            background: #fff;
+            border-color: #000;
+            box-shadow: 0 0 12px rgba(255,255,255,.7);
+        }
+
+        /* Toggle switch */
+        html.gothic .toggle-track { background: rgba(255,255,255,.12); }
+        html.gothic .toggle-track.on {
+            background: rgba(255,255,255,.45);
+            box-shadow: 0 0 10px rgba(255,255,255,.3);
+        }
+
+        /* Output box */
+        html.gothic .output-box {
+            background: rgba(255,255,255,.02);
+            border-color: rgba(255,255,255,.1);
+            color: #d4d4d4;
+        }
+        html.gothic .output-box::before {
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,.5), #fff);
+            box-shadow: 0 0 10px rgba(255,255,255,.3);
+        }
+
+        /* Generate button */
+        html.gothic .btn-gen {
+            background: rgba(255,255,255,.06);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.2);
+            animation: gothicPulse 3s ease-in-out infinite;
+        }
+        html.gothic .btn-gen:hover {
+            background: rgba(255,255,255,.1);
+            box-shadow: 0 0 30px rgba(255,255,255,.25), inset 0 0 20px rgba(255,255,255,.05);
+        }
+        html.gothic .btn-outline {
+            border-color: rgba(255,255,255,.2);
+            color: rgba(255,255,255,.7);
+        }
+        html.gothic .btn-outline:hover { background: rgba(255,255,255,.06); color: #fff; }
+
+        /* Tags / pills */
+        html.gothic .tag-btn {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.5);
+        }
+        html.gothic .tag-btn.active {
+            background: rgba(255,255,255,.08);
+            border-color: rgba(255,255,255,.4);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,.12);
+        }
+        html.gothic .tag-btn:hover { border-color: rgba(255,255,255,.3); color: #fff; }
+        html.gothic .qw {
+            background: rgba(255,255,255,.03);
+            border-color: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.6);
+            box-shadow: none;
+        }
+        html.gothic .qw:hover {
+            background: rgba(255,255,255,.07);
+            border-color: rgba(255,255,255,.3);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,.1);
+        }
+
+        /* Provider / template buttons */
+        html.gothic .prov-btn {
+            background: rgba(255,255,255,.03);
+            border-color: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.5);
+            box-shadow: none;
+        }
+        html.gothic .prov-btn.active {
+            background: rgba(255,255,255,.07);
+            border-color: rgba(255,255,255,.4);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(255,255,255,.12);
+        }
+        html.gothic .tpl-btn {
+            background: rgba(255,255,255,.03);
+            border-color: rgba(255,255,255,.09);
+            color: rgba(255,255,255,.6);
+            box-shadow: none;
+        }
+        html.gothic .tpl-btn:hover {
+            background: rgba(255,255,255,.07);
+            border-color: rgba(255,255,255,.25);
+            color: #fff;
+        }
+
+        /* Drop zone */
+        html.gothic .drop-zone {
+            border-color: rgba(255,255,255,.15);
+            background: rgba(255,255,255,.02);
+        }
+        html.gothic .drop-zone:hover, html.gothic .drop-zone.dragover {
+            border-color: rgba(255,255,255,.4);
+            background: rgba(255,255,255,.04);
+            box-shadow: 0 0 24px rgba(255,255,255,.06);
+        }
+
+        /* Saved / var cards */
+        html.gothic .saved-card {
+            background: rgba(255,255,255,.03);
+            border-left-color: rgba(255,255,255,.5);
+        }
+        html.gothic .var-card {
+            background: rgba(255,255,255,.03);
+            border-color: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.55);
+        }
+
+        /* Effect panels */
+        html.gothic .effect-panel {
+            background: rgba(255,255,255,.02) !important;
+            border-color: rgba(255,255,255,.08) !important;
+        }
+        html.gothic .effect-panel:hover {
+            box-shadow: 0 0 20px rgba(255,255,255,.06) !important;
+            border-color: rgba(255,255,255,.2) !important;
+        }
+
+        /* EQ indicator dot */
+        html.gothic .w-1\.5.h-1\.5.rounded-full.bg-kx-pink { background: rgba(255,255,255,.7) !important; box-shadow: 0 0 6px rgba(255,255,255,.5); }
+
+        /* Master VU meter bars */
+        html.gothic #meterL, html.gothic #meterR {
+            background: linear-gradient(to top, rgba(255,255,255,.9), rgba(255,255,255,.4)) !important;
+            box-shadow: 0 0 8px rgba(255,255,255,.3);
+        }
+
+        /* Notifications */
+        html.gothic .notif {
+            background: rgba(10,10,10,.95);
+            border-color: rgba(255,255,255,.2);
+            color: #e8e8e8;
+            box-shadow: 0 0 24px rgba(255,255,255,.1);
+        }
+        html.gothic .notif.error {
+            border-color: rgba(255,255,255,.15);
+            color: rgba(255,255,255,.6);
+        }
+
+        /* Side panel */
+        html.gothic #sidePanel {
+            background: #060606;
+            border-color: rgba(255,255,255,.1);
+            box-shadow: 4px 0 30px rgba(255,255,255,.04);
+        }
+        html.gothic #sidePanelToggle {
+            background: rgba(255,255,255,.04);
+            border-color: rgba(255,255,255,.12);
+            color: rgba(255,255,255,.6);
+        }
+        html.gothic #sidePanelToggle:hover {
+            background: rgba(255,255,255,.08);
+            box-shadow: 0 0 14px rgba(255,255,255,.15);
+            color: #fff;
+        }
+
+        /* Scrollbar */
+        html.gothic ::-webkit-scrollbar-track { background: #080808; }
+        html.gothic ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 3px; }
+        html.gothic ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.35); }
+
+        /* Rule cards */
+        html.gothic .rule-card { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.08); }
+
+        /* Live monitor dark surface stays dark — just re-tint */
+        html.gothic #liveMonitor {
+            background: #000;
+            border-color: rgba(255,255,255,.18);
+            box-shadow: 0 0 30px rgba(255,255,255,.06);
+        }
+        html.gothic #liveMonitor::before { background: linear-gradient(90deg,#fff,rgba(255,255,255,.4),#fff); }
+        html.gothic .mon-on  { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,.7); }
+        html.gothic .mon-off { color: rgba(255,255,255,.25); }
+        html.gothic .mon-val { color: rgba(255,255,255,.8); }
+        html.gothic .mon-label { color: rgba(255,255,255,.5); }
+
+        /* Tailwind token overrides */
+        html.gothic .bg-kx-bg, html.gothic [class*="bg-kx-bg"] { background-color: #000 !important; }
+        html.gothic .bg-kx-surface { background-color: #060606 !important; }
+        html.gothic .bg-kx-card { background-color: #080808 !important; }
+        html.gothic .text-kx-white  { color: #fff !important; }
+        html.gothic .text-kx-text   { color: rgba(255,255,255,.65) !important; }
+        html.gothic .text-kx-muted  { color: rgba(255,255,255,.3) !important; }
+        html.gothic .text-kx-pink   { color: rgba(255,255,255,.9) !important; }
+        html.gothic .text-kx-cyan   { color: rgba(255,255,255,.8) !important; }
+        html.gothic .text-kx-violet { color: rgba(255,255,255,.75) !important; }
+        html.gothic .text-kx-acid   { color: rgba(255,255,255,.7) !important; }
+        html.gothic .text-kx-gold   { color: rgba(255,255,255,.7) !important; }
+        html.gothic .border-kx-border { border-color: rgba(255,255,255,.1) !important; }
+        /* Progress / spinner bars */
+        html.gothic .prog-bar { background: linear-gradient(90deg, rgba(255,255,255,.5), rgba(255,255,255,.8)); }
+
+        /* Waveform canvas glow */
+        html.gothic #waveformCanvas { filter: invert(1) brightness(0.9); }
+
+        /* ── Gothic active nav label for DEV badge ── */
+        html.gothic nav::after {
+            content: '◈ GOTHIC';
+            position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace; font-size: 9px;
+            letter-spacing: .15em; color: rgba(255,255,255,.35);
+            pointer-events: none;
+        }
+
         /* ─── Live Monitor ─── */
         #liveMonitor {
             background: linear-gradient(135deg, #0f172a, #1e293b);
@@ -1457,11 +1797,13 @@
                 </button>
                 <button onclick="toggleApiKeyModal()" class="btn-action px-3 py-2.5 rounded-xl ml-2 text-sm" title="Configure API Key">🔑</button>
                 <button onclick="toggleTheme()" class="theme-toggle ml-2" id="themeToggle" title="Toggle Light/Dark Theme">🌙</button>
+                <button onclick="toggleGothic()" class="theme-toggle ml-1" id="gothicToggle" title="Enable Gothic Theme" style="font-size:1.1rem;">💀</button>
             </div>
 
             <!-- Mobile Nav -->
             <div class="md:hidden flex items-center gap-2">
                 <button onclick="toggleTheme()" class="theme-toggle" id="themeToggleMobile" title="Toggle Theme">🌙</button>
+                <button onclick="toggleGothic()" class="theme-toggle" id="gothicToggleMobile" title="Gothic Theme" style="font-size:1rem;">💀</button>
                 <button onclick="toggleApiKeyModal()" class="btn-action px-3 py-1.5 rounded-lg text-xs">🔑</button>
                 <button onclick="toggleSavedModal()" class="btn-action px-3 py-1.5 rounded-lg text-xs">⭐ <span id="saved-count-mobile">0</span></button>
             </div>
@@ -4064,6 +4406,25 @@ function toggleTheme() {
         localStorage.setItem('kx-theme', 'dark');
     }
 }
+// ═══════════════ GOTHIC THEME TOGGLE ═══════════════
+function toggleGothic() {
+    const html = document.documentElement;
+    const isGothic = html.classList.contains('gothic');
+    const btn = document.getElementById('gothicToggle');
+    const btnMob = document.getElementById('gothicToggleMobile');
+    if (isGothic) {
+        html.classList.remove('gothic');
+        if (btn) { btn.classList.remove('gothic-active'); btn.title = 'Enable Gothic Theme'; }
+        if (btnMob) { btnMob.classList.remove('gothic-active'); }
+        localStorage.setItem('kx-gothic', 'off');
+    } else {
+        html.classList.add('gothic');
+        if (btn) { btn.classList.add('gothic-active'); btn.title = 'Disable Gothic Theme'; }
+        if (btnMob) { btnMob.classList.add('gothic-active'); }
+        localStorage.setItem('kx-gothic', 'on');
+    }
+}
+
 // Restore saved theme
 (function() {
     const saved = localStorage.getItem('kx-theme');
@@ -4084,6 +4445,16 @@ function toggleTheme() {
             if (btn) btn.textContent = '🌙';
             const mob = document.getElementById('themeToggleMobile');
             if (mob) mob.textContent = '🌙';
+        }, 100);
+    }
+    // Restore gothic overlay
+    if (localStorage.getItem('kx-gothic') === 'on') {
+        document.documentElement.classList.add('gothic');
+        setTimeout(() => {
+            const btn = document.getElementById('gothicToggle');
+            if (btn) { btn.classList.add('gothic-active'); btn.title = 'Disable Gothic Theme'; }
+            const btnMob = document.getElementById('gothicToggleMobile');
+            if (btnMob) btnMob.classList.add('gothic-active');
         }, 100);
     }
 })();
