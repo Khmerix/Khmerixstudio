@@ -1,6 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" class="pearl">
+<html lang="en">
 <head>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('kx-theme');
+            if (saved === 'light') {
+                document.documentElement.classList.add('pearl');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+            if (localStorage.getItem('kx-gothic') === 'on') {
+                document.documentElement.classList.add('gothic');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="theme-color" content="#f0f4f8">
@@ -4443,36 +4456,21 @@ function toggleGothic() {
 
 // Restore saved theme
 (function() {
-    const saved = localStorage.getItem('kx-theme');
-    if (saved === 'dark') {
-        document.documentElement.classList.remove('pearl');
-        document.documentElement.classList.add('dark');
-        setTimeout(() => {
-            const btn = document.getElementById('themeToggle');
-            if (btn) btn.textContent = '☀️';
-            const mob = document.getElementById('themeToggleMobile');
-            if (mob) mob.textContent = '☀️';
-        }, 100);
-    } else {
-        // Default to light (pearl)
-        document.documentElement.classList.add('pearl');
-        setTimeout(() => {
-            const btn = document.getElementById('themeToggle');
-            if (btn) btn.textContent = '🌙';
-            const mob = document.getElementById('themeToggleMobile');
-            if (mob) mob.textContent = '🌙';
-        }, 100);
-    }
-    // Restore gothic overlay
-    if (localStorage.getItem('kx-gothic') === 'on') {
-        document.documentElement.classList.add('gothic');
-        setTimeout(() => {
-            const btn = document.getElementById('gothicToggle');
-            if (btn) { btn.classList.add('gothic-active'); btn.title = 'Disable Gothic Theme'; }
-            const btnMob = document.getElementById('gothicToggleMobile');
-            if (btnMob) btnMob.classList.add('gothic-active');
-        }, 100);
-    }
+    // Sync UI icons with inline script's class choice
+    (function() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const btn = document.getElementById('themeToggle');
+        const mob = document.getElementById('themeToggleMobile');
+        if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+        if (mob) mob.textContent = isDark ? '☀️' : '🌙';
+        // Gothic UI
+        if (localStorage.getItem('kx-gothic') === 'on') {
+            const gBtn = document.getElementById('gothicToggle');
+            const gMob = document.getElementById('gothicToggleMobile');
+            if (gBtn) { gBtn.classList.add('gothic-active'); gBtn.title = 'Disable Gothic Theme'; }
+            if (gMob) gMob.classList.add('gothic-active');
+        }
+    })();
 })();
 
 // ═══════════════ KEYBOARD SHORTCUTS ═══════════════

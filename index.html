@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('kx-theme');
+            if (saved === 'light') {
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.remove('light');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Creative Minds — KHMERIX Studio. Explore Music, Audio, and AI Prompts. Built with passion in Cambodia.">
@@ -582,14 +592,9 @@ function toggleTheme() {
 }
 
 (function() {
-    const saved = localStorage.getItem('kx-theme');
-    if (saved === 'light') {
-        document.documentElement.classList.add('light');
-        const icon = document.getElementById('themeIcon');
-        if (icon) icon.textContent = '🌙';
-    } else if (saved === null) {
-        document.documentElement.classList.remove('light');
-    }
+    const isLight = document.documentElement.classList.contains('light');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
 })();
 
 /* ─── Cursor Glow Follower ─── */

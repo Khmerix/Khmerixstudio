@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('kx-theme');
+            if (saved !== 'light') {
+                document.documentElement.classList.add('dark');
+            }
+            if (localStorage.getItem('kx-gothic') === 'on') {
+                document.documentElement.classList.add('gothic');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f0f4f8">
@@ -1281,21 +1292,15 @@ function toggleTheme() {
     if (btn) btn.textContent = isDark ? '☀️' : '🌙';
     localStorage.setItem('kx-theme', isDark ? 'dark' : 'light');
 }
-// Restore theme
+// Sync UI icons with inline script's class choice
 (function() {
-    const saved = localStorage.getItem('kx-theme');
-    if (saved === 'dark') {
-        document.documentElement.classList.add('dark');
-        const btn = document.getElementById('themeToggle');
-        if (btn) btn.textContent = '☀️';
-    }
-    // Restore gothic state
+    const isDark = document.documentElement.classList.contains('dark');
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+    // Gothic UI
     if (localStorage.getItem('kx-gothic') === 'on') {
-        document.documentElement.classList.add('gothic');
-        setTimeout(() => {
-            const btn = document.getElementById('gothicToggle');
-            if (btn) { btn.classList.add('gothic-active'); btn.title = 'Disable Gothic Theme'; }
-        }, 100);
+        const gBtn = document.getElementById('gothicToggle');
+        if (gBtn) { gBtn.classList.add('gothic-active'); gBtn.title = 'Disable Gothic Theme'; }
     }
 })();
 
