@@ -1285,19 +1285,58 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // ── Theme Toggle ──────────────────────────────────
+const themeChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('kx_theme_sync') : null;
+
+function applyThemeFromStorage() {
+    try {
+        const saved = localStorage.getItem('kx-theme');
+        const html = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        if (saved === 'light') {
+            html.classList.remove('dark');
+            if (btn) btn.textContent = '🌙';
+        } else {
+            html.classList.add('dark');
+            if (btn) btn.textContent = '☀️';
+        }
+    } catch(e) {}
+}
+
 function toggleTheme() {
     const html = document.documentElement;
     const isDark = html.classList.toggle('dark');
     const btn = document.getElementById('themeToggle');
     if (btn) btn.textContent = isDark ? '☀️' : '🌙';
-    localStorage.setItem('kx-theme', isDark ? 'dark' : 'light');
+    try {
+        localStorage.setItem('kx-theme', isDark ? 'dark' : 'light');
+        if (themeChannel) themeChannel.postMessage({ theme: isDark ? 'dark' : 'light' });
+    } catch(e) {}
 }
-// Sync UI icons with inline script's class choice
+
+applyThemeFromStorage();
+
+if (themeChannel) {
+    themeChannel.onmessage = (e) => {
+        if (e.data && e.data.theme) {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            if (e.data.theme === 'light') {
+                html.classList.remove('dark');
+                if (btn) btn.textContent = '🌙';
+            } else {
+                html.classList.add('dark');
+                if (btn) btn.textContent = '☀️';
+            }
+        }
+    };
+}
+
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) applyThemeFromStorage();
+});
+
+// Gothic UI
 (function() {
-    const isDark = document.documentElement.classList.contains('dark');
-    const btn = document.getElementById('themeToggle');
-    if (btn) btn.textContent = isDark ? '☀️' : '🌙';
-    // Gothic UI
     if (localStorage.getItem('kx-gothic') === 'on') {
         const gBtn = document.getElementById('gothicToggle');
         if (gBtn) { gBtn.classList.add('gothic-active'); gBtn.title = 'Disable Gothic Theme'; }

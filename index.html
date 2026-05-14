@@ -583,19 +583,55 @@ function toggleMobileMenu() {
 }
 
 /* ─── Theme Toggle ─── */
+const themeChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('kx_theme_sync') : null;
+
+function applyThemeFromStorage() {
+    try {
+        const saved = localStorage.getItem('kx-theme');
+        const html = document.documentElement;
+        const icon = document.getElementById('themeIcon');
+        if (saved === 'light') {
+            html.classList.add('light');
+            if (icon) icon.textContent = '🌙';
+        } else {
+            html.classList.remove('light');
+            if (icon) icon.textContent = '☀️';
+        }
+    } catch(e) {}
+}
+
 function toggleTheme() {
     const html = document.documentElement;
     const icon = document.getElementById('themeIcon');
     const isLight = html.classList.toggle('light');
     icon.textContent = isLight ? '🌙' : '☀️';
-    localStorage.setItem('kx-theme', isLight ? 'light' : 'dark');
+    try {
+        localStorage.setItem('kx-theme', isLight ? 'light' : 'dark');
+        if (themeChannel) themeChannel.postMessage({ theme: isLight ? 'light' : 'dark' });
+    } catch(e) {}
 }
 
-(function() {
-    const isLight = document.documentElement.classList.contains('light');
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.textContent = isLight ? '🌙' : '☀️';
-})();
+applyThemeFromStorage();
+
+if (themeChannel) {
+    themeChannel.onmessage = (e) => {
+        if (e.data && e.data.theme) {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            if (e.data.theme === 'light') {
+                html.classList.add('light');
+                if (icon) icon.textContent = '🌙';
+            } else {
+                html.classList.remove('light');
+                if (icon) icon.textContent = '☀️';
+            }
+        }
+    };
+}
+
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) applyThemeFromStorage();
+});
 
 /* ─── Cursor Glow Follower ─── */
 (function() {

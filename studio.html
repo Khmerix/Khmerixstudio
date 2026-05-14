@@ -4416,25 +4416,78 @@ setTimeout(() => {
 }, 2200);
 
 // ═══════════════ THEME TOGGLE ═══════════════
+const themeChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('kx_theme_sync') : null;
+
+function applyThemeFromStorage() {
+    try {
+        const saved = localStorage.getItem('kx-theme');
+        const html = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        const mob = document.getElementById('themeToggleMobile');
+        if (saved === 'light') {
+            html.classList.remove('dark');
+            html.classList.add('pearl');
+            if (btn) btn.textContent = '🌙';
+            if (mob) mob.textContent = '🌙';
+        } else {
+            html.classList.remove('pearl');
+            html.classList.add('dark');
+            if (btn) btn.textContent = '☀️';
+            if (mob) mob.textContent = '☀️';
+        }
+    } catch(e) {}
+}
+
 function toggleTheme() {
     const html = document.documentElement;
     const isDark = html.classList.contains('dark');
+    const btn = document.getElementById('themeToggle');
+    const mob = document.getElementById('themeToggleMobile');
     if (isDark) {
         html.classList.remove('dark');
         html.classList.add('pearl');
-        document.getElementById('themeToggle').textContent = '🌙';
-        const mob = document.getElementById('themeToggleMobile');
+        if (btn) btn.textContent = '🌙';
         if (mob) mob.textContent = '🌙';
-        localStorage.setItem('kx-theme', 'light');
+        try {
+            localStorage.setItem('kx-theme', 'light');
+            if (themeChannel) themeChannel.postMessage({ theme: 'light' });
+        } catch(e) {}
     } else {
         html.classList.remove('pearl');
         html.classList.add('dark');
-        document.getElementById('themeToggle').textContent = '☀️';
-        const mob = document.getElementById('themeToggleMobile');
+        if (btn) btn.textContent = '☀️';
         if (mob) mob.textContent = '☀️';
-        localStorage.setItem('kx-theme', 'dark');
+        try {
+            localStorage.setItem('kx-theme', 'dark');
+            if (themeChannel) themeChannel.postMessage({ theme: 'dark' });
+        } catch(e) {}
     }
 }
+
+if (themeChannel) {
+    themeChannel.onmessage = (e) => {
+        if (e.data && e.data.theme) {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            const mob = document.getElementById('themeToggleMobile');
+            if (e.data.theme === 'light') {
+                html.classList.remove('dark');
+                html.classList.add('pearl');
+                if (btn) btn.textContent = '🌙';
+                if (mob) mob.textContent = '🌙';
+            } else {
+                html.classList.remove('pearl');
+                html.classList.add('dark');
+                if (btn) btn.textContent = '☀️';
+                if (mob) mob.textContent = '☀️';
+            }
+        }
+    };
+}
+
+window.addEventListener('pageshow', (e) => {
+    if (e.persisted) applyThemeFromStorage();
+});
 // ═══════════════ GOTHIC THEME TOGGLE ═══════════════
 function toggleGothic() {
     const html = document.documentElement;
@@ -4456,14 +4509,9 @@ function toggleGothic() {
 
 // Restore saved theme
 (function() {
-    // Sync UI icons with inline script's class choice
+    applyThemeFromStorage();
+    // Gothic UI
     (function() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const btn = document.getElementById('themeToggle');
-        const mob = document.getElementById('themeToggleMobile');
-        if (btn) btn.textContent = isDark ? '☀️' : '🌙';
-        if (mob) mob.textContent = isDark ? '☀️' : '🌙';
-        // Gothic UI
         if (localStorage.getItem('kx-gothic') === 'on') {
             const gBtn = document.getElementById('gothicToggle');
             const gMob = document.getElementById('gothicToggleMobile');
