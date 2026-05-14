@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -485,6 +486,120 @@
             outline-offset: 2px;
         }
 
+        /* ─── Dark Theme ─── */
+        html.dark body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        html.dark body::before {
+            opacity: 0.08;
+            filter: brightness(0.3) contrast(1.2);
+        }
+        html.dark body::after {
+            background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.90) 50%, rgba(15,23,42,0.95) 100%);
+        }
+        html.dark .landing-nav {
+            background: rgba(15,23,42,0.85);
+            border-bottom-color: rgba(56,189,248,0.15);
+        }
+        html.dark .nav-link { color: #94a3b8; }
+        html.dark .nav-link:hover { color: #38bdf8; background: rgba(56,189,248,0.1); }
+        html.dark .nav-link.active { color: #38bdf8; background: rgba(56,189,248,0.12); }
+        html.dark .glass-card {
+            background: rgba(30,41,59,0.7);
+            border-color: rgba(56,189,248,0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        html.dark .glass-card:hover {
+            box-shadow: 0 16px 48px rgba(14,165,233,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        html.dark .track-card {
+            background: rgba(30,41,59,0.7);
+            border-color: rgba(56,189,248,0.15);
+        }
+        html.dark .track-card:hover { box-shadow: 0 16px 48px rgba(14,165,233,0.15); }
+        html.dark .track-card.playing { border-color: rgba(14,165,233,0.5); }
+        html.dark .cover-art-placeholder {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+        }
+        html.dark .player-bar { background: rgba(255,255,255,0.1); }
+        html.dark .play-btn {
+            background: linear-gradient(145deg, #1e293b, #334155);
+            border-color: rgba(56,189,248,0.3);
+        }
+        html.dark .play-btn.active { background: linear-gradient(145deg, #0ea5e9, #38bdf8); }
+        html.dark .tag-genre {
+            background: rgba(14,165,233,0.15);
+            border-color: rgba(56,189,248,0.2);
+            color: #38bdf8;
+        }
+        html.dark .tag-ai {
+            background: rgba(99,102,241,0.15);
+            border-color: rgba(99,102,241,0.2);
+            color: #818cf8;
+        }
+        html.dark .badge-video {
+            background: rgba(245,158,11,0.15);
+            border-color: rgba(245,158,11,0.2);
+            color: #fbbf24;
+        }
+        html.dark .filter-btn {
+            background: rgba(30,41,59,0.7);
+            border-color: #334155;
+            color: #94a3b8;
+        }
+        html.dark .filter-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+        html.dark .filter-btn.active {
+            background: linear-gradient(145deg, #0ea5e9, #0284c7);
+            border-color: #38bdf8;
+            color: #fff;
+        }
+        html.dark .shimmer-text {
+            background: linear-gradient(90deg, #fff 0%, #fff 40%, #38bdf8 45%, #6366f1 50%, #38bdf8 55%, #fff 60%, #fff 100%);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        html.dark .modal-overlay { background: rgba(0,0,0,0.8); }
+        html.dark .modal-box {
+            background: rgba(15,23,42,0.96);
+            border-color: rgba(56,189,248,0.15);
+        }
+        html.dark .input-field {
+            background: rgba(30,41,59,0.8);
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        html.dark .input-field::placeholder { color: #64748b; }
+        html.dark .input-field:focus { border-color: #38bdf8; }
+        html.dark select.input-field option { background: #1e293b; color: #e2e8f0; }
+        html.dark .drop-zone-upload {
+            border-color: rgba(56,189,248,0.2);
+            background: rgba(30,41,59,0.5);
+        }
+        html.dark .drop-zone-upload:hover, html.dark .drop-zone-upload.dragover {
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.1);
+        }
+        html.dark .notif {
+            background: rgba(15,23,42,0.95);
+            border-color: rgba(56,189,248,0.2);
+            color: #e2e8f0;
+        }
+        html.dark .notif.error { border-color: rgba(239,68,68,0.3); color: #fca5a5; }
+        html.dark .site-footer {
+            border-top-color: rgba(56,189,248,0.1);
+            background: rgba(15,23,42,0.7);
+        }
+        html.dark ::-webkit-scrollbar-track { background: #0f172a; }
+        html.dark ::-webkit-scrollbar-thumb { background: #334155; }
+        html.dark .text-kx-white { color: #f1f5f9 !important; }
+        html.dark .text-kx-text { color: #94a3b8 !important; }
+        html.dark .text-kx-muted { color: #64748b !important; }
+        html.dark .text-sky-600, html.dark .text-sky-700 { color: #38bdf8 !important; }
+        html.dark .bg-sky-50 { background: rgba(14,165,233,0.1) !important; }
+        html.dark .border-sky-200 { border-color: rgba(56,189,248,0.2) !important; }
+
         /* Respect user motion preferences */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -512,6 +627,7 @@
                 <a href="highlights.html" class="nav-link active">🎵 AI Highlights</a>
             </div>
             <div class="flex items-center gap-2">
+                <button onclick="toggleTheme()" class="gothic-btn" id="themeToggle" title="Toggle Theme">🌙</button>
                 <button onclick="toggleGothic()" class="gothic-btn" id="gothicToggle" title="Enable Gothic Theme">💀</button>
                 <button onclick="openSubmitModal()" class="btn-primary px-5 py-2 text-sm">
                     ＋ Submit Track
@@ -1157,19 +1273,23 @@ const observer = new IntersectionObserver(entries => {
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// ── Gothic theme ──────────────────────────────────
-function toggleGothic() {
+// ── Theme Toggle ──────────────────────────────────
+function toggleTheme() {
     const html = document.documentElement;
-    const btn  = document.getElementById('gothicToggle');
-    const isOn = html.classList.toggle('gothic');
-    if (btn) {
-        btn.classList.toggle('gothic-active', isOn);
-        btn.title = isOn ? 'Disable Gothic Theme' : 'Enable Gothic Theme';
-    }
-    localStorage.setItem('kx-gothic', isOn ? 'on' : 'off');
+    const isDark = html.classList.toggle('dark');
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+    localStorage.setItem('kx-theme', isDark ? 'dark' : 'light');
 }
-// Restore gothic state
+// Restore theme
 (function() {
+    const saved = localStorage.getItem('kx-theme');
+    if (saved === 'dark') {
+        document.documentElement.classList.add('dark');
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.textContent = '☀️';
+    }
+    // Restore gothic state
     if (localStorage.getItem('kx-gothic') === 'on') {
         document.documentElement.classList.add('gothic');
         setTimeout(() => {

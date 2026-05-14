@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -18,6 +18,7 @@
                     fontFamily: {
                         display: ['Syne', 'sans-serif'],
                         body: ['DM Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
@@ -91,6 +92,23 @@
             z-index: 0;
         }
 
+        /* ─── Mouse Glow Follower ─── */
+        .cursor-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+            mix-blend-mode: screen;
+        }
+        html.light .cursor-glow {
+            background: radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%);
+        }
+
         /* ─── Gradient Text ─── */
         .gradient-text {
             background: linear-gradient(135deg, #ffffff 0%, #00d4ff 50%, #38bdf8 100%);
@@ -105,37 +123,80 @@
             background-clip: text;
         }
 
+        /* ─── 3D Indented Text ─── */
+        .indent-text {
+            background: linear-gradient(to bottom, #bae6fd 0%, #0ea5e9 40%, #0284c7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 1px 0 rgba(255,255,255,0.35)) drop-shadow(0 -1px 0 rgba(0,0,0,0.25));
+        }
+        html.light .indent-text {
+            background: linear-gradient(to bottom, #7dd3fc 0%, #0284c7 40%, #0369a1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 1px 0 rgba(255,255,255,0.6)) drop-shadow(0 -1px 0 rgba(0,0,0,0.15));
+        }
+
         /* ─── Glowing Buttons ─── */
         .btn-glow-cyan {
-            background: linear-gradient(135deg, #0ea5e9, #00d4ff);
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4), 0 0 40px rgba(0, 212, 255, 0.2);
-            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #0ea5e9, #00d4ff);
+            box-shadow:
+                8px 8px 20px rgba(14,165,233,0.35),
+                -8px -8px 20px rgba(255,255,255,0.05),
+                inset 2px 2px 4px rgba(255,255,255,0.3),
+                inset -2px -2px 4px rgba(0,0,0,0.1);
+            border: 1px solid rgba(56,189,248,0.4);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-glow-cyan::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 50%);
+            pointer-events: none;
         }
         .btn-glow-cyan:hover {
-            box-shadow: 0 0 30px rgba(14, 165, 233, 0.6), 0 0 60px rgba(0, 212, 255, 0.3);
-            transform: translateY(-2px);
+            box-shadow:
+                12px 12px 30px rgba(14,165,233,0.45),
+                -12px -12px 30px rgba(255,255,255,0.08),
+                inset 2px 2px 4px rgba(255,255,255,0.4),
+                inset -2px -2px 4px rgba(0,0,0,0.15);
+            transform: translateY(-3px) scale(1.02);
+        }
+        .btn-glow-cyan:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow:
+                inset 4px 4px 10px rgba(0,0,0,0.2),
+                inset -4px -4px 10px rgba(255,255,255,0.1);
         }
 
         .btn-glow-pink {
             background: transparent;
             border: 2px solid #ff006e;
             color: #ff006e;
-            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
-            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255,0,110,0.3), inset 0 0 20px rgba(255,0,110,0.05);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .btn-glow-pink:hover {
-            background: rgba(255, 0, 110, 0.1);
-            box-shadow: 0 0 30px rgba(255, 0, 110, 0.5);
-            transform: translateY(-2px);
+            background: rgba(255,0,110,0.1);
+            box-shadow: 0 0 30px rgba(255,0,110,0.5), inset 0 0 30px rgba(255,0,110,0.1);
+            transform: translateY(-3px) scale(1.02);
+        }
+        .btn-glow-pink:active {
+            transform: translateY(1px) scale(0.98);
         }
         html.light .btn-glow-pink {
             border-color: #0ea5e9;
             color: #0ea5e9;
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+            box-shadow: 0 0 20px rgba(14,165,233,0.2), inset 0 0 20px rgba(14,165,233,0.05);
         }
         html.light .btn-glow-pink:hover {
-            background: rgba(14, 165, 233, 0.1);
-            box-shadow: 0 0 30px rgba(14, 165, 233, 0.4);
+            background: rgba(14,165,233,0.1);
+            box-shadow: 0 0 30px rgba(14,165,233,0.4), inset 0 0 30px rgba(14,165,233,0.1);
         }
 
         /* ─── Glass Cards ─── */
@@ -202,7 +263,7 @@
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
-            .bg-grid, .orb { display: none; }
+            .bg-grid, .orb, #noteCanvas { display: none; }
         }
     </style>
 </head>
@@ -214,23 +275,37 @@
 <div class="orb w-80 h-80 bg-cyan-500/20 bottom-0 left-0"></div>
 <div class="orb w-64 h-64 bg-purple-500/20 top-1/2 right-1/4"></div>
 
+<!-- Cursor Glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- Dynamic Music Notes Canvas -->
+<canvas id="noteCanvas" aria-hidden="true"></canvas>
+
 <!-- ═══ NAVIGATION ═══ -->
 <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
+        <div class="flex items-center justify-between h-20">
             <!-- Logo -->
-            <a href="#" class="flex items-center gap-3 select-none" aria-label="KHMERIX Studio Home">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-bold font-display shadow-lg shadow-cyan-500/30">K</div>
-                <span class="font-display font-bold text-lg tracking-tight">KHMERIX</span>
+            <a href="#" class="flex items-center gap-3 select-none group" aria-label="KHMERIX Studio Home">
+                <div class="relative w-10 h-10">
+                    <div class="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl blur-md opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                    <div class="relative w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-cyan-400/30 group-hover:border-cyan-400/50 transition-colors shadow-lg">
+                        <span class="font-display font-extrabold text-transparent text-lg bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600">K</span>
+                    </div>
+                </div>
+                <div class="flex flex-col leading-tight">
+                    <span class="font-display font-extrabold text-lg tracking-wider text-[var(--text-primary)]">KHMERIX</span>
+                    <span class="font-body text-[10px] text-[var(--text-secondary)] tracking-[.2em] uppercase">Studio Suite</span>
+                </div>
             </a>
 
             <!-- Desktop Links -->
             <div class="hidden md:flex items-center gap-8">
-                <a href="#" class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition">Home</a>
-                <a href="studio.html" class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition">Audio</a>
-                <a href="studio.html" class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition">Prompts</a>
-                <a href="highlights.html" class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition">Community</a>
-                <a href="#about" class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition">About</a>
+                <a href="#" class="font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors">Home</a>
+                <a href="studio.html" class="font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors">Audio</a>
+                <a href="studio.html" class="font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors">Prompts</a>
+                <a href="highlights.html" class="font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors">Community</a>
+                <a href="#about" class="font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors">About</a>
             </div>
 
             <!-- Right Actions -->
@@ -238,7 +313,9 @@
                 <button onclick="toggleTheme()" class="w-9 h-9 rounded-lg border border-[var(--border-glow)] flex items-center justify-center hover:bg-[var(--bg-surface)] transition" title="Toggle Theme" aria-label="Toggle light and dark theme">
                     <span id="themeIcon">☀️</span>
                 </button>
-                <a href="studio.html" class="btn-glow-cyan px-5 py-2 rounded-full text-sm font-bold text-white hidden sm:inline-block">Launch</a>
+                <a href="studio.html" class="btn-glow-cyan px-5 py-2 rounded-full text-sm font-bold text-white hidden sm:inline-flex items-center gap-2">
+                    <span class="indent-text">Launch</span>
+                </a>
                 <!-- Mobile menu button -->
                 <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 rounded-lg border border-[var(--border-glow)] flex items-center justify-center" aria-label="Open menu" aria-expanded="false" id="menuBtn">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -249,19 +326,21 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="md:hidden">
             <div class="py-4 space-y-3 border-t border-[var(--border-glow)]">
-                <a href="#" class="block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition py-2">Home</a>
-                <a href="studio.html" class="block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition py-2">Audio</a>
-                <a href="studio.html" class="block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition py-2">Prompts</a>
-                <a href="highlights.html" class="block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition py-2">Community</a>
-                <a href="#about" class="block text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition py-2">About</a>
-                <a href="studio.html" class="btn-glow-cyan px-5 py-2 rounded-full text-sm font-bold text-white inline-block mt-2">Launch Studio</a>
+                <a href="#" class="block font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors py-2">Home</a>
+                <a href="studio.html" class="block font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors py-2">Audio</a>
+                <a href="studio.html" class="block font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors py-2">Prompts</a>
+                <a href="highlights.html" class="block font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors py-2">Community</a>
+                <a href="#about" class="block font-body text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--neon-cyan)] transition-colors py-2">About</a>
+                <a href="studio.html" class="btn-glow-cyan px-5 py-2 rounded-full text-sm font-bold text-white inline-flex items-center gap-2 mt-2">
+                    <span class="indent-text">Launch Studio</span>
+                </a>
             </div>
         </div>
     </div>
 </nav>
 
 <!-- ═══ HERO ═══ -->
-<section class="relative z-10 min-h-screen flex items-center pt-16">
+<section class="relative z-10 min-h-screen flex items-center pt-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div class="grid lg:grid-cols-2 gap-12 items-center">
             <!-- Left: Text -->
@@ -282,11 +361,11 @@
 
                 <div class="flex flex-wrap gap-4">
                     <a href="studio.html" class="btn-glow-cyan px-8 py-4 rounded-full text-base font-bold text-white inline-flex items-center gap-2">
-                        Start Creating
+                        <span class="indent-text">Start Creating</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </a>
                     <a href="highlights.html" class="btn-glow-pink px-8 py-4 rounded-full text-base font-bold inline-flex items-center gap-2">
-                        Listen Now
+                        <span class="indent-text">Listen Now</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </a>
                 </div>
@@ -440,11 +519,11 @@
         </p>
         <div class="flex flex-wrap justify-center gap-4">
             <a href="studio.html" class="btn-glow-cyan px-8 py-3.5 rounded-full text-base font-bold text-white inline-flex items-center gap-2">
-                Open Studio
+                <span class="indent-text">Open Studio</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </a>
             <a href="highlights.html" class="btn-glow-pink px-8 py-3.5 rounded-full text-base font-bold inline-flex items-center gap-2">
-                Browse Community
+                <span class="indent-text">Browse Community</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </a>
         </div>
@@ -499,16 +578,151 @@ function toggleTheme() {
     const icon = document.getElementById('themeIcon');
     const isLight = html.classList.toggle('light');
     icon.textContent = isLight ? '🌙' : '☀️';
-    localStorage.setItem('kx-landing-theme', isLight ? 'light' : 'dark');
+    localStorage.setItem('kx-theme', isLight ? 'light' : 'dark');
 }
 
 (function() {
-    const saved = localStorage.getItem('kx-landing-theme');
+    const saved = localStorage.getItem('kx-theme');
     if (saved === 'light') {
         document.documentElement.classList.add('light');
         const icon = document.getElementById('themeIcon');
         if (icon) icon.textContent = '🌙';
+    } else if (saved === null) {
+        document.documentElement.classList.remove('light');
     }
+})();
+
+/* ─── Cursor Glow Follower ─── */
+(function() {
+    const glow = document.getElementById('cursorGlow');
+    let mouseX = -500, mouseY = -500;
+    let glowX = -500, glowY = -500;
+
+    document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    document.addEventListener('mouseleave', () => {
+        mouseX = -500;
+        mouseY = -500;
+    });
+
+    function animateGlow() {
+        glowX += (mouseX - glowX) * 0.08;
+        glowY += (mouseY - glowY) * 0.08;
+        glow.style.left = glowX + 'px';
+        glow.style.top = glowY + 'px';
+        requestAnimationFrame(animateGlow);
+    }
+    animateGlow();
+})();
+
+/* ─── Dynamic Music Notes Canvas ─── */
+(function() {
+    const canvas = document.getElementById('noteCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, dpr;
+    let animId;
+
+    const noteChars = ['♪','♫','♩','♬','♭','♯','𝄞','𝄢'];
+    const palette = ['#0ea5e9', '#00d4ff', '#38bdf8', '#ff006e', '#fb7185', '#8b5cf6'];
+
+    function randFloat(min, max) { return Math.random() * (max - min) + min; }
+    function pickColor() { return palette[Math.floor(Math.random() * palette.length)]; }
+    function pickNote() { return noteChars[Math.floor(Math.random() * noteChars.length)]; }
+
+    function resize() {
+        dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    let mouse = { x: -1000, y: -1000 };
+    document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    const notes = [];
+    const NOTE_COUNT = 35;
+
+    function initNotes() {
+        notes.length = 0;
+        for (let i = 0; i < NOTE_COUNT; i++) {
+            notes.push({
+                x: randFloat(0, W),
+                y: randFloat(0, H),
+                size: randFloat(14, 28),
+                color: pickColor(),
+                alpha: randFloat(0.06, 0.18),
+                vx: randFloat(-0.3, 0.3),
+                vy: randFloat(-0.4, 0.1),
+                note: pickNote(),
+                rot: randFloat(0, Math.PI * 2),
+                rotSpeed: randFloat(-0.005, 0.005),
+                twinkle: randFloat(0.003, 0.01),
+                phase: randFloat(0, Math.PI * 2),
+            });
+        }
+    }
+
+    let time = 0;
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        notes.forEach(n => {
+            // Mouse repulsion
+            const dx = n.x - mouse.x;
+            const dy = n.y - mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150 && dist > 0) {
+                const force = (150 - dist) / 150 * 2;
+                n.vx += (dx / dist) * force * 0.02;
+                n.vy += (dy / dist) * force * 0.02;
+            }
+
+            // Damping
+            n.vx *= 0.99;
+            n.vy *= 0.99;
+
+            // Base drift
+            n.x += n.vx + Math.sin(time * 0.001 + n.phase) * 0.1;
+            n.y += n.vy + Math.cos(time * 0.001 + n.phase) * 0.05;
+            n.rot += n.rotSpeed;
+
+            // Wrap around
+            if (n.x < -40) n.x = W + 40;
+            if (n.x > W + 40) n.x = -40;
+            if (n.y < -40) n.y = H + 40;
+            if (n.y > H + 40) n.y = -40;
+
+            // Twinkle
+            const tw = 0.5 + 0.5 * Math.sin(time * n.twinkle + n.phase);
+            const a = n.alpha * tw;
+
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.rotate(n.rot);
+            ctx.font = `${n.size}px 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = n.color;
+            ctx.globalAlpha = a;
+            ctx.fillText(n.note, 0, 0);
+            ctx.restore();
+        });
+
+        time++;
+        animId = requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', () => { resize(); initNotes(); });
+    resize();
+    initNotes();
+    draw();
 })();
 </script>
 

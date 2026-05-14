@@ -4412,7 +4412,7 @@ function toggleTheme() {
         document.getElementById('themeToggle').textContent = '🌙';
         const mob = document.getElementById('themeToggleMobile');
         if (mob) mob.textContent = '🌙';
-        localStorage.setItem('kx-theme', 'pearl');
+        localStorage.setItem('kx-theme', 'light');
     } else {
         html.classList.remove('pearl');
         html.classList.add('dark');
@@ -4454,7 +4454,7 @@ function toggleGothic() {
             if (mob) mob.textContent = '☀️';
         }, 100);
     } else {
-        // Default to pearl
+        // Default to light (pearl)
         document.documentElement.classList.add('pearl');
         setTimeout(() => {
             const btn = document.getElementById('themeToggle');
