@@ -111,12 +111,24 @@
             background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%);
             pointer-events: none;
             z-index: 1;
+            left: -500px;
+            top: -500px;
             transform: translate(-50%, -50%);
             transition: opacity 0.3s ease;
             mix-blend-mode: screen;
         }
         html.light .cursor-glow {
             background: radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%);
+        }
+
+        /* ─── Dynamic Music Notes Canvas ─── */
+        #noteCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* ─── Gradient Text ─── */
@@ -378,6 +390,10 @@
                         <span class="indent-text">Listen Now</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </a>
+                    <button onclick="sharePage()" class="btn-glow-cyan px-6 py-4 rounded-full text-base font-bold text-white inline-flex items-center gap-2" title="Share KHMERIX Studio">
+                        <span class="indent-text">Share</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -519,6 +535,167 @@
     </div>
 </section>
 
+<!-- ═══ COMMUNITY TRACKS ═══ -->
+<section id="tracks" class="relative z-10 py-24 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+                <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+                <span class="text-xs font-mono uppercase tracking-widest text-pink-400">Community Uploads</span>
+            </div>
+            <h2 class="font-display font-bold text-3xl md:text-5xl mb-4">Latest Tracks</h2>
+            <p class="text-[var(--text-secondary)] max-w-xl mx-auto text-lg">Discover and share AI-generated music from the KHMERIX community.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="tracksGrid">
+            <!-- Track 1 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center text-xl">🎧</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">3:42</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Neon Dreams</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by KHMERIX Beats</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-400 text-xs font-mono">Synthwave</span>
+                    <span class="px-2 py-1 rounded-md bg-purple-500/10 text-purple-400 text-xs font-mono">AI Generated</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Neon Dreams', 'KHMERIX Beats')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/20 text-cyan-400 text-sm font-bold hover:bg-cyan-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Neon Dreams', 'KHMERIX Beats', 'Synthwave')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-cyan-400 hover:border-cyan-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track 2 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center text-xl">🎹</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">4:15</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Phnom Penh Nights</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by CreativeMinds</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-pink-500/10 text-pink-400 text-xs font-mono">Lo-Fi</span>
+                    <span class="px-2 py-1 rounded-md bg-purple-500/10 text-purple-400 text-xs font-mono">Chill</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Phnom Penh Nights', 'CreativeMinds')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-400/20 text-pink-400 text-sm font-bold hover:bg-pink-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Phnom Penh Nights', 'CreativeMinds', 'Lo-Fi')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-pink-400 hover:border-pink-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track 3 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-xl">🎸</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">2:58</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Angkor Sunrise</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by TempleSounds</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 text-xs font-mono">Ambient</span>
+                    <span class="px-2 py-1 rounded-md bg-orange-500/10 text-orange-400 text-xs font-mono">World</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Angkor Sunrise', 'TempleSounds')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/20 text-amber-400 text-sm font-bold hover:bg-amber-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Angkor Sunrise', 'TempleSounds', 'Ambient')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-amber-400 hover:border-amber-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track 4 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-xl">🥁</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">3:21</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Khmer Trap 808</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by BeatForge</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-mono">Trap</span>
+                    <span class="px-2 py-1 rounded-md bg-teal-500/10 text-teal-400 text-xs font-mono">Drill</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Khmer Trap 808', 'BeatForge')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/20 text-emerald-400 text-sm font-bold hover:bg-emerald-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Khmer Trap 808', 'BeatForge', 'Trap')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-emerald-400 hover:border-emerald-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track 5 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center text-xl">🎤</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">3:55</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Rice Field Echoes</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by MekongWave</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-violet-500/10 text-violet-400 text-xs font-mono">Hip Hop</span>
+                    <span class="px-2 py-1 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-mono">Boom Bap</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Rice Field Echoes', 'MekongWave')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-400/20 text-violet-400 text-sm font-bold hover:bg-violet-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Rice Field Echoes', 'MekongWave', 'Hip Hop')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-violet-400 hover:border-violet-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track 6 -->
+            <div class="glass-card p-6 group">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-red-500/20 flex items-center justify-center text-xl">🎺</div>
+                    <span class="text-xs font-mono text-[var(--text-muted)]">2:47</span>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-1">Tuk-Tuk Bass</h3>
+                <p class="text-sm text-[var(--text-secondary)] mb-3">by StreetPulse</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="px-2 py-1 rounded-md bg-rose-500/10 text-rose-400 text-xs font-mono">EDM</span>
+                    <span class="px-2 py-1 rounded-md bg-red-500/10 text-red-400 text-xs font-mono">House</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="playTrack('Tuk-Tuk Bass', 'StreetPulse')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-red-500/20 border border-rose-400/20 text-rose-400 text-sm font-bold hover:bg-rose-500/30 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        Play
+                    </button>
+                    <button onclick="shareTrack('Tuk-Tuk Bass', 'StreetPulse', 'EDM')" class="w-10 h-10 rounded-xl border border-[var(--border-glow)] flex items-center justify-center text-[var(--text-secondary)] hover:text-rose-400 hover:border-rose-400/50 transition" title="Share track">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="highlights.html" class="btn-glow-pink px-8 py-3.5 rounded-full text-base font-bold inline-flex items-center gap-2">
+                <span class="indent-text">Browse All Tracks</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- ═══ ABOUT ═══ -->
 <section id="about" class="relative z-10 py-24 px-4">
     <div class="max-w-4xl mx-auto glass-card p-10 md:p-16 text-center">
@@ -537,6 +714,36 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </a>
         </div>
+    </div>
+</section>
+
+<!-- ═══ SIGN UP ═══ -->
+<section id="signup" class="relative z-10 py-24 px-4">
+    <div class="max-w-3xl mx-auto glass-card p-10 md:p-16 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 mb-6">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span class="text-xs font-mono uppercase tracking-widest text-cyan-400">Early Access</span>
+        </div>
+        <h2 class="font-display font-bold text-3xl md:text-5xl mb-4">Join KHMERIX Studio</h2>
+        <p class="text-[var(--text-secondary)] leading-relaxed mb-10 max-w-xl mx-auto text-lg">
+            Be the first to access new AI audio tools, prompt labs, and community features. 
+            No spam — just creative updates from Cambodia 🇰🇭
+        </p>
+        <form id="signupForm" class="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onsubmit="handleSignup(event)">
+            <input 
+                type="email" 
+                id="signupEmail" 
+                placeholder="Enter your email" 
+                required
+                class="flex-1 px-6 py-4 rounded-full bg-[var(--bg-deep)] border border-[var(--border-glow)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all font-body text-sm"
+            >
+            <button type="submit" class="btn-glow-cyan px-8 py-4 rounded-full text-base font-bold text-white inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                <span class="indent-text">Sign Up</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
+        </form>
+        <p id="signupMessage" class="mt-4 text-sm font-medium hidden"></p>
+        <p class="mt-6 text-xs text-[var(--text-muted)]">By signing up, you agree to receive occasional updates. Unsubscribe anytime.</p>
     </div>
 </section>
 
@@ -760,11 +967,110 @@ window.addEventListener('pageshow', (e) => {
         animId = requestAnimationFrame(draw);
     }
 
-    window.addEventListener('resize', () => { resize(); initNotes(); });
+    // FIX: Only resize on resize events; do NOT reinitialize notes (prevents jumpy reset)
+    window.addEventListener('resize', () => {
+        resize();
+        // Redistribute notes proportionally instead of full reset
+        notes.forEach(n => {
+            n.x = Math.min(n.x, W);
+            n.y = Math.min(n.y, H);
+        });
+    });
     resize();
     initNotes();
     draw();
 })();
+/* ─── Share Track ─── */
+function shareTrack(title, artist, genre) {
+    const shareData = {
+        title: title + ' — KHMERIX Studio',
+        text: 'Listen to "' + title + '" by ' + artist + ' (' + genre + ') on KHMERIX Studio 🇰🇭',
+        url: window.location.href + '?track=' + encodeURIComponent(title)
+    };
+    if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(shareData.text + ' ' + shareData.url).then(() => {
+            showToast('Track link copied to clipboard!');
+        }).catch(() => {
+            showToast('Unable to share track');
+        });
+    }
+}
+
+/* ─── Play Track (placeholder) ─── */
+function playTrack(title, artist) {
+    showToast('▶ Now playing: ' + title + ' by ' + artist);
+}
+
+/* ─── Share Page ─── */
+function sharePage() {
+    const shareData = {
+        title: 'KHMERIX Studio — Creative Minds Cambodia',
+        text: 'Explore Music, Audio, and AI Prompts. Built with passion in Cambodia 🇰🇭',
+        url: window.location.href
+    };
+    if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('Link copied to clipboard!');
+        }).catch(() => {
+            showToast('Unable to copy link');
+        });
+    }
+}
+
+/* ─── Toast Notification ─── */
+function showToast(message) {
+    let toast = document.getElementById('kx-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'kx-toast';
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);padding:12px 24px;border-radius:9999px;background:var(--bg-surface);backdrop-filter:blur(20px);border:1px solid var(--border-glow);color:var(--text-primary);font-family:"DM Sans",sans-serif;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s ease;z-index:9999;pointer-events:none;white-space:nowrap;';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2500);
+}
+
+/* ─── Sign Up Handler ─── */
+function handleSignup(e) {
+    e.preventDefault();
+    const email = document.getElementById('signupEmail').value.trim();
+    const msg = document.getElementById('signupMessage');
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalHTML = btn.innerHTML;
+
+    if (!email || !email.includes('@')) {
+        msg.textContent = 'Please enter a valid email address.';
+        msg.className = 'mt-4 text-sm font-medium text-red-400';
+        msg.classList.remove('hidden');
+        return;
+    }
+
+    // Simulate submission
+    btn.disabled = true;
+    btn.innerHTML = '<span class="indent-text">Joining...</span><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        document.getElementById('signupEmail').value = '';
+        msg.textContent = '🎉 Welcome to KHMERIX Studio! Check your inbox for confirmation.';
+        msg.className = 'mt-4 text-sm font-medium text-cyan-400';
+        msg.classList.remove('hidden');
+        showToast('Successfully signed up!');
+    }, 1500);
+}
+
 </script>
 
 </body>
