@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Khmerixstudio",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", ".", "-p", "5100", "--no-clipboard"],
+      "port": 5100
+    }
+  ]
+}
